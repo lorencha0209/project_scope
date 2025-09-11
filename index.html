@@ -50,6 +50,20 @@
             background-color: rgba(0,0,0,0.5);
             transition: opacity 0.3s ease;
         }
+        /* Styles for rich text editor content */
+        .prose-display {
+            line-height: 1.6;
+        }
+        .prose-display ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+        }
+        .prose-display strong {
+            font-weight: 700;
+        }
+        .prose-display em {
+            font-style: italic;
+        }
         /* Custom color styles from palette */
         .bg-main { background-color: #EFF0E4; }
         .bg-sidebar { background-color: #99ccff; }
@@ -377,6 +391,7 @@
                         { id: 'metrics', name: 'Métricas' },
                         { id: 'risks', name: 'Gestión de Riesgos' },
                         { id: 'timeline', name: 'Cronograma' },
+                        { id: 'minutes', name: 'Actas' },
                     ];
 
                     const tabsContainer = document.getElementById('project-tabs');
@@ -394,6 +409,7 @@
                         case 'metrics': this.projectMetrics(contentContainer, project); break;
                         case 'risks': this.projectRisks(contentContainer, project); break;
                         case 'timeline': this.projectTimeline(contentContainer, project); break;
+                        case 'minutes': this.projectMinutes(contentContainer, project); break;
                     }
                 },
                 
@@ -687,7 +703,74 @@
                             </div>
                         </div>
                     </div>`;
+                },
+
+                projectMinutes(container, project) {
+                    const minutes = (project.minutes || []).sort((a, b) => new Date(b.date) - new Date(a.date));
+                    container.innerHTML = `
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100vh-220px)]">
+                            <div class="md:col-span-1 bg-white rounded-xl shadow-md p-4 flex flex-col">
+                                <button data-action="show-minute-modal" class="btn-create w-full font-bold py-2 px-4 rounded-lg mb-4">Crear Acta</button>
+                                <div id="minutes-list" class="overflow-y-auto custom-scroll flex-grow">
+                                    ${minutes.length > 0 ? minutes.map(m => `
+                                        <div data-action="view-minute" data-minute-id="${m.id}" class="p-3 rounded-lg cursor-pointer hover:bg-gray-100">
+                                            <p class="font-semibold text-title truncate">${m.title}</p>
+                                            <p class="text-xs text-gray-500">${app.helpers.formatDate(m.date)}</p>
+                                        </div>
+                                    `).join('') : '<p class="text-center text-sm text-gray-500 italic mt-4">No hay actas creadas.</p>'}
+                                </div>
+                            </div>
+                            <div id="minute-viewer" class="md:col-span-2 bg-white rounded-xl shadow-md p-6 overflow-y-auto custom-scroll">
+                                <div class="flex flex-col items-center justify-center h-full text-center">
+                                    <i class="fa-regular fa-file-lines text-5xl text-gray-300 mb-4"></i>
+                                    <h3 class="text-xl font-semibold text-gray-600">Visor de Actas</h3>
+                                    <p class="text-gray-500 mt-1">Seleccione un acta para verla o cree una nueva.</p>
+                                </div>
+                            </div>
+                        </div>`;
+                },
+
+                minuteDetail(containerId, minuteId) {
+                    const container = document.getElementById(containerId);
+                    const minute = app.get.minuteById(app.currentProjectId, minuteId);
+                    if (!container || !minute) return;
+
+                    container.innerHTML = `
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h2 class="text-2xl font-bold text-title">${minute.title}</h2>
+                                <p class="text-sm text-gray-500">Fecha: ${app.helpers.formatDate(minute.date)}</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button data-action="edit-minute" data-minute-id="${minute.id}" class="btn-edit py-1 px-3 rounded-lg"><i class="fa-solid fa-pencil"></i></button>
+                                <button data-action="delete-minute" data-minute-id="${minute.id}" class="btn-delete py-1 px-3 rounded-lg"><i class="fa-solid fa-trash-can"></i></button>
+                            </div>
+                        </div>
+                        <div class="prose-display mt-6">${minute.content.replace(/\n/g, '<br>')}</div>`;
+                },
+
+                minuteEditor(containerId, minuteId) {
+                    const container = document.getElementById(containerId);
+                    const minute = app.get.minuteById(app.currentProjectId, minuteId);
+                    if (!container || !minute) return;
+
+                    container.innerHTML = `
+                        <h2 class="text-2xl font-bold text-title mb-2">${minute.title}</h2>
+                        <p class="text-sm text-gray-500 mb-4">Editando... (Recuerda guardar los cambios)</p>
+                        
+                        <div id="editor-toolbar" class="flex gap-2 mb-2 border rounded-t-lg p-2 bg-gray-50">
+                           <button class="px-2 py-1 text-sm rounded hover:bg-gray-200" onclick="document.execCommand('bold', false, null);" title="Negrita"><i class="fa-solid fa-bold"></i></button>
+                           <button class="px-2 py-1 text-sm rounded hover:bg-gray-200" onclick="document.execCommand('italic', false, null);" title="Cursiva"><i class="fa-solid fa-italic"></i></button>
+                           <button class="px-2 py-1 text-sm rounded hover:bg-gray-200" onclick="document.execCommand('insertUnorderedList', false, null);" title="Lista"><i class="fa-solid fa-list-ul"></i></button>
+                        </div>
+                        <div id="minute-content-editor" contenteditable="true" class="w-full h-96 p-4 border rounded-b-lg focus:outline-none focus:ring-2 focus:ring-title overflow-y-auto custom-scroll">${minute.content}</div>
+
+                        <div class="flex justify-end mt-4">
+                             <button data-action="save-minute-content" data-minute-id="${minute.id}" class="btn-save py-2 px-4 rounded-lg">Guardar Contenido</button>
+                        </div>
+                    `;
                 }
+
             },
 
             // =================================================================================
@@ -811,6 +894,20 @@
                         </form>
                         <style>.input { border-radius: 0.375rem; border: 1px solid #D1D5DB; padding: 0.5rem 0.75rem; } .input:focus { outline: 2px solid transparent; outline-offset: 2px; box-shadow: 0 0 0 2px #335a82; }</style>
                     `);
+                },
+                minute() {
+                     this.show(`
+                        <h2 class="text-2xl font-bold text-title mb-6">Crear Nueva Acta</h2>
+                        <form id="form-add-minute">
+                            <div class="mb-4"><label for="minute-title" class="block text-sm font-medium text-gray-700">Título del Acta</label><input type="text" id="minute-title" name="title" required class="mt-1 block w-full input"></div>
+                            <div class="mb-6"><label for="minute-date" class="block text-sm font-medium text-gray-700">Fecha</label><input type="date" id="minute-date" name="date" required class="mt-1 block w-full input"></div>
+                            <div class="flex justify-end gap-4">
+                                <button type="button" class="btn-cancel py-2 px-4 rounded-lg" data-action="close-modal">Cancelar</button>
+                                <button type="submit" class="btn-save py-2 px-4 rounded-lg">Crear y Editar</button>
+                            </div>
+                        </form>
+                        <style>.input { border-radius: 0.375rem; border: 1px solid #D1D5DB; padding: 0.5rem 0.75rem; } .input:focus { outline: 2px solid transparent; outline-offset: 2px; box-shadow: 0 0 0 2px #335a82; }</style>
+                    `);
                 }
             },
 
@@ -827,6 +924,7 @@
                     const taskId = target.dataset.taskId;
                     const riskId = target.dataset.riskId;
                     const columnId = target.dataset.columnId;
+                    const minuteId = target.dataset.minuteId;
 
                     switch (action) {
                         case 'close-modal': app.modals.hide(); break;
@@ -836,6 +934,14 @@
                         case 'delete-sprint': app.modals.confirm('¿Seguro que quieres eliminar este sprint? Las tareas volverán a estar disponibles.', () => app.handlers.deleteSprint()); break;
                         case 'delete-column': app.modals.confirm('¿Seguro que quieres eliminar esta columna? Las tareas se moverán a la primera columna.', () => app.handlers.deleteColumn(columnId)); break;
                         case 'delete-risk': app.modals.confirm('¿Seguro que quieres eliminar este riesgo?', () => app.handlers.deleteRisk(riskId)); break;
+                        case 'show-minute-modal': app.modals.minute(); break;
+                        case 'view-minute': app.render.minuteDetail('minute-viewer', minuteId); break;
+                        case 'edit-minute': app.render.minuteEditor('minute-viewer', minuteId); break;
+                        case 'delete-minute': app.modals.confirm('¿Seguro que quieres eliminar esta acta?', () => app.handlers.deleteMinute(minuteId)); break;
+                        case 'save-minute-content': 
+                            const content = document.getElementById('minute-content-editor').innerHTML;
+                            app.handlers.saveMinuteContent(minuteId, content);
+                            break;
                     }
                 });
 
@@ -891,6 +997,7 @@
                     if (form.id === 'form-create-sprint') this.handlers.createSprint(data);
                     if (form.id === 'form-add-column') this.handlers.addColumn(data);
                     if (form.id === 'form-add-risk') this.handlers.addRisk(data);
+                    if (form.id === 'form-add-minute') this.handlers.addMinute(data);
                     
                     this.modals.hide();
                 });
@@ -942,7 +1049,7 @@
             
             handlers: {
                 addProject(data) {
-                    const newProject = { id: `P${app.data.projects.length + 1}`, name: data.name, description: data.description, tasks: [], risks: [], sprints: [] };
+                    const newProject = { id: `P${app.data.projects.length + 1}`, name: data.name, description: data.description, tasks: [], risks: [], sprints: [], minutes: [] };
                     app.data.projects.push(newProject);
                     app.db.save();
                     app.render.projectsList();
@@ -1043,6 +1150,30 @@
                     app.db.save();
                     app.render.singleProject();
                 },
+                 addMinute(data) {
+                    const project = app.get.projectById(app.currentProjectId);
+                    if (!project) return;
+                    const newMinute = { id: 'minute_' + Date.now(), title: data.title, date: data.date, content: '' };
+                    if (!project.minutes) project.minutes = [];
+                    project.minutes.push(newMinute);
+                    app.db.save();
+                    app.render.projectMinutes(document.getElementById('project-content'), project);
+                    app.render.minuteEditor('minute-viewer', newMinute.id);
+                },
+                saveMinuteContent(minuteId, content) {
+                    const minute = app.get.minuteById(app.currentProjectId, minuteId);
+                    if (!minute) return;
+                    minute.content = content;
+                    app.db.save();
+                    app.render.minuteDetail('minute-viewer', minuteId);
+                },
+                deleteMinute(minuteId) {
+                    const project = app.get.projectById(app.currentProjectId);
+                    if (!project || !project.minutes) return;
+                    project.minutes = project.minutes.filter(m => m.id !== minuteId);
+                    app.db.save();
+                    app.render.projectMinutes(document.getElementById('project-content'), project);
+                },
                 moveTaskInKanban(taskId, newColumnId) {
                     const project = app.get.projectById(app.currentProjectId);
                     const latestSprint = app.get.latestSprint(project.id);
@@ -1065,6 +1196,7 @@
             get: {
                 projectById(id) { return app.data.projects.find(p => p.id === id); },
                 taskById(projectId, taskId) { const p = this.projectById(projectId); return p ? (p.tasks || []).find(t => t.id === taskId) : null; },
+                minuteById(projectId, minuteId) { const p = this.projectById(projectId); return p ? (p.minutes || []).find(m => m.id === minuteId) : null; },
                 kanbanState(projectId, sprintId) { return app.data.kanbanState[projectId]?.[sprintId]; },
                 latestSprint(projectId) { const p = this.projectById(projectId); return (p && p.sprints && p.sprints.length > 0) ? p.sprints[p.sprints.length - 1] : null; }
             },
