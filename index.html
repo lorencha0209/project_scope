@@ -4,1231 +4,685 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Project Scope</title>
-    <!-- TailwindCSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js CDN for Metrics -->
+    <script src="https://unpkg.com/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-    <!-- Google Fonts: Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- Custom Styles -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
+        }
+        .sidebar {
+            background-color: #99ccff;
+        }
+        .main-bg {
             background-color: #EFF0E4;
-            color: #333;
         }
-        /* Custom scrollbar for Kanban & Gantt */
-        .custom-scroll::-webkit-scrollbar {
-            height: 8px;
-            width: 8px;
+        .title-color {
+            color: #335a82;
         }
-        .custom-scroll::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
+        .btn-primary {
+            background-color: #213754;
         }
-        .custom-scroll::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 10px;
+        .btn-save {
+            background-color: #228575;
         }
-        .custom-scroll::-webkit-scrollbar-thumb:hover {
-            background: #555;
+        .btn-edit {
+            background-color: #ffcc99;
         }
-        .dragging {
-            opacity: 0.5;
-            transform: rotate(2deg);
+        .risk-low { background-color: #29aa6c; }
+        .risk-moderate { background-color: #ffc043; }
+        .risk-high { background-color: #f27649; }
+        .risk-extreme { background-color: #eb3434; }
+        
+        .kanban-column {
+            min-height: 400px;
         }
-        .drag-over {
-            border: 2px dashed #335a82;
-            background-color: #eff0e4;
+        
+        .task-card {
+            cursor: move;
+            transition: all 0.3s ease;
         }
-        .modal-backdrop {
-            background-color: rgba(0,0,0,0.5);
-            transition: opacity 0.3s ease;
+        
+        .task-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
-        /* Styles for rich text editor content */
-        .prose-display {
-            line-height: 1.6;
+        
+        .sortable-ghost {
+            opacity: 0.4;
         }
-        .prose-display ul {
-            list-style-type: disc;
-            padding-left: 1.5rem;
+        
+        .sortable-chosen {
+            transform: rotate(5deg);
         }
-        .prose-display strong {
-            font-weight: 700;
+        
+        .gantt-bar {
+            height: 20px;
+            border-radius: 4px;
+            position: relative;
+            margin: 2px 0;
         }
-        .prose-display em {
-            font-style: italic;
+        
+        .rich-text-editor {
+            min-height: 300px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 16px;
         }
-        /* Custom color styles from palette */
-        .bg-main { background-color: #EFF0E4; }
-        .bg-sidebar { background-color: #99ccff; }
-        .text-title { color: #335a82; }
-        .btn-create { background-color: #213754; color: white; }
-        .btn-create:hover { background-color: #335a82; }
-        .btn-save { background-color: #228575; color: white; }
-        .btn-save:hover { background-color: #1a6356; }
-        .btn-edit { background-color: #ffcc99; color: #333; }
-        .btn-edit:hover { background-color: #f2b879; }
-        .btn-cancel { background-color: #6c757d; color: white; }
-        .btn-cancel:hover { background-color: #5a6268; }
-        .btn-delete { background-color: #dc3545; color: white; }
-        .btn-delete:hover { background-color: #c82333; }
+        
+        .rich-text-editor:focus {
+            outline: none;
+            border-color: #213754;
+            box-shadow: 0 0 0 3px rgba(33, 55, 84, 0.1);
+        }
     </style>
 </head>
-<body class="flex h-screen overflow-hidden">
-
-    <!-- =========== Sidebar =========== -->
-    <aside class="w-64 bg-sidebar p-6 flex flex-col fixed h-full text-white">
-        <div class="flex items-center gap-4 mb-10">
-            <div class="bg-white rounded-full p-2">
-                <!-- Agile Icon SVG -->
-                <svg class="h-8 w-8 text-title" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" fill="#335a82"/></svg>
-            </div>
-            <h1 class="text-2xl font-bold">Project Scope</h1>
-        </div>
-        <nav>
-            <ul class="space-y-4">
-                <li>
-                    <a href="#" class="nav-link flex items-center gap-3 p-2 rounded-lg hover:bg-white/20 transition-colors" data-view="home">
-                        <i class="fa-solid fa-house w-6 text-center"></i>
+<body class="main-bg">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="sidebar w-64 flex-shrink-0 flex flex-col">
+            <div class="p-6">
+                <div class="flex items-center space-x-3 mb-8">
+                    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+                        <i class="fas fa-sync-alt text-blue-600 text-xl"></i>
+                    </div>
+                    <h1 class="text-white text-xl font-bold">Project Scope</h1>
+                </div>
+                
+                <nav class="space-y-2">
+                    <a href="#" onclick="showView('home')" class="nav-item flex items-center space-x-3 text-white hover:bg-white hover:bg-opacity-20 px-4 py-3 rounded-lg transition-colors">
+                        <i class="fas fa-home"></i>
                         <span>Inicio</span>
                     </a>
-                </li>
-                <li>
-                    <a href="#" class="nav-link flex items-center gap-3 p-2 rounded-lg hover:bg-white/20 transition-colors" data-view="projects">
-                        <i class="fa-solid fa-folder w-6 text-center"></i>
+                    <a href="#" onclick="showView('projects')" class="nav-item flex items-center space-x-3 text-white hover:bg-white hover:bg-opacity-20 px-4 py-3 rounded-lg transition-colors">
+                        <i class="fas fa-project-diagram"></i>
                         <span>Proyectos</span>
                     </a>
-                </li>
-                <li>
-                    <a href="#" class="nav-link flex items-center gap-3 p-2 rounded-lg hover:bg-white/20 transition-colors" data-view="analytics">
-                        <i class="fa-solid fa-chart-line w-6 text-center"></i>
-                        <span>Análisis de Datos</span>
+                    <a href="#" onclick="showView('analytics')" class="nav-item flex items-center space-x-3 text-white hover:bg-white hover:bg-opacity-20 px-4 py-3 rounded-lg transition-colors">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Análisis de datos</span>
                     </a>
-                </li>
-            </ul>
-        </nav>
-    </aside>
-
-    <!-- =========== Main Content =========== -->
-    <main class="flex-1 ml-64 p-8 overflow-y-auto">
-        <!-- Home View -->
-        <div id="view-home" class="view hidden">
-            <div id="greeting-container" class="text-center mb-8">
-                <!-- Dynamic content will be injected here -->
+                    <a href="#" onclick="app.openDataManagement()" class="nav-item flex items-center space-x-3 text-white hover:bg-white hover:bg-opacity-20 px-4 py-3 rounded-lg transition-colors">
+                        <i class="fas fa-database"></i>
+                        <span>Gestión de Datos</span>
+                    </a>
+                </nav>
             </div>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="bg-white p-6 rounded-xl shadow-md">
-                    <h2 class="text-2xl font-bold text-title mb-4">Mis Tareas en Curso</h2>
-                    <div id="home-tasks-container" class="space-y-3">
-                        <!-- Tasks will be rendered here -->
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <main class="flex-1 overflow-y-auto p-8">
+                <!-- Home View -->
+                <div id="home-view" class="view">
+                    <div class="text-center mb-8">
+                        <h2 class="text-4xl font-bold title-color mb-4" id="greeting"></h2>
+                        <p class="text-xl text-gray-600" id="datetime"></p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Mis Tareas -->
+                        <div class="bg-white rounded-lg shadow-lg p-6">
+                            <h3 class="text-2xl font-bold title-color mb-4">Mis Tareas</h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead>
+                                        <tr class="border-b">
+                                            <th class="text-left py-2">Título</th>
+                                            <th class="text-left py-2">Estado</th>
+                                            <th class="text-left py-2">Fecha Fin</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="home-tasks-list">
+                                        <!-- Tasks will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Mis Proyectos -->
+                        <div class="bg-white rounded-lg shadow-lg p-6">
+                            <h3 class="text-2xl font-bold title-color mb-4">Mis Proyectos</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="home-projects-list">
+                                <!-- Projects will be loaded here -->
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="bg-white p-6 rounded-xl shadow-md">
-                    <h2 class="text-2xl font-bold text-title mb-4">Mis Proyectos</h2>
-                    <div id="home-projects-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- Projects will be rendered here -->
+
+                <!-- Projects View -->
+                <div id="projects-view" class="view hidden">
+                    <div class="flex justify-between items-center mb-8">
+                        <h2 class="text-3xl font-bold title-color">Proyectos</h2>
+                        <button onclick="openCreateProjectModal()" class="btn-primary text-white px-6 py-3 rounded-lg hover:bg-opacity-90 transition-colors">
+                            <i class="fas fa-plus mr-2"></i>Crear Nuevo Proyecto
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="projects-grid">
+                        <!-- Projects will be loaded here -->
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Projects List View -->
-        <div id="view-projects" class="view hidden">
-            <div class="flex justify-between items-center mb-6">
-                <h1 class="text-4xl font-bold text-title">Proyectos</h1>
-                <button id="btn-show-project-modal" class="btn-create font-bold py-2 px-4 rounded-lg flex items-center gap-2 transition-transform hover:scale-105">
-                    <i class="fa-solid fa-plus"></i>
-                    Crear Nuevo Proyecto
-                </button>
-            </div>
-            <div id="projects-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                <!-- Project cards will be rendered here -->
-            </div>
-        </div>
-        
-        <!-- Single Project View -->
-        <div id="view-single-project" class="view hidden">
-             <!-- Project Header and Nav -->
-             <div class="mb-6">
-                <h1 id="project-title" class="text-4xl font-bold text-title"></h1>
-                <div class="border-b border-gray-300 mt-4">
-                    <nav id="project-tabs" class="-mb-px flex space-x-8 overflow-x-auto custom-scroll" aria-label="Tabs">
-                        <!-- Tabs will be dynamically generated -->
-                    </nav>
+                <!-- Analytics View -->
+                <div id="analytics-view" class="view hidden">
+                    <div class="text-center py-20">
+                        <i class="fas fa-chart-line text-6xl text-gray-400 mb-4"></i>
+                        <h2 class="text-3xl font-bold title-color mb-4">Análisis de Datos</h2>
+                        <p class="text-xl text-gray-600">Próximamente disponible</p>
+                    </div>
                 </div>
-            </div>
-            <!-- Project Content Panes -->
-            <div id="project-content">
-                <!-- Content for each tab will be rendered here -->
-            </div>
-        </div>
 
-        <!-- Analytics View -->
-        <div id="view-analytics" class="view hidden">
-            <div class="flex flex-col items-center justify-center h-full">
-                <i class="fa-solid fa-hourglass-half text-6xl text-gray-400 mb-4"></i>
-                <h1 class="text-4xl font-bold text-title">Próximamente</h1>
-                <p class="text-gray-600 mt-2">La sección de Análisis de Datos está en construcción.</p>
-            </div>
-        </div>
-    </main>
+                <!-- Project Management View -->
+                <div id="project-management-view" class="view hidden">
+                    <div class="mb-6">
+                        <button onclick="showView('projects')" class="text-blue-600 hover:text-blue-800 mb-4">
+                            <i class="fas fa-arrow-left mr-2"></i>Volver a Proyectos
+                        </button>
+                        <h2 class="text-3xl font-bold title-color" id="project-title"></h2>
+                    </div>
+                    
+                    <!-- Project Tabs -->
+                    <div class="mb-6">
+                        <div class="border-b border-gray-200">
+                            <nav class="-mb-px flex space-x-8">
+                                <button onclick="showProjectTab('tasks')" class="project-tab py-2 px-1 border-b-2 font-medium text-sm" data-tab="tasks">
+                                    Tareas
+                                </button>
+                                <button onclick="showProjectTab('board')" class="project-tab py-2 px-1 border-b-2 font-medium text-sm" data-tab="board">
+                                    Tablero
+                                </button>
+                                <button onclick="showProjectTab('metrics')" class="project-tab py-2 px-1 border-b-2 font-medium text-sm" data-tab="metrics">
+                                    Métricas
+                                </button>
+                                <button onclick="showProjectTab('schedule')" class="project-tab py-2 px-1 border-b-2 font-medium text-sm" data-tab="schedule">
+                                    Cronograma
+                                </button>
+                                <button onclick="showProjectTab('risks')" class="project-tab py-2 px-1 border-b-2 font-medium text-sm" data-tab="risks">
+                                    Gestión de Riesgos
+                                </button>
+                                <button onclick="showProjectTab('minutes')" class="project-tab py-2 px-1 border-b-2 font-medium text-sm" data-tab="minutes">
+                                    Actas del Proyecto
+                                </button>
+                            </nav>
+                        </div>
+                    </div>
 
-    <!-- =========== Modals =========== -->
-    <div id="modal-container" class="fixed inset-0 z-50 flex items-center justify-center hidden">
-        <div class="modal-backdrop fixed inset-0"></div>
-        <div id="modal-content" class="bg-white rounded-xl shadow-2xl p-8 z-10 w-full max-w-lg transform transition-all scale-95 opacity-0">
-             <!-- Modal content will be injected here -->
+                    <!-- Project Tab Content -->
+                    <div id="project-tab-content">
+                        <!-- Content will be loaded dynamically -->
+                    </div>
+                </div>
+            </main>
         </div>
     </div>
-    
-    <!-- JS Logic -->
-    <script>
-    document.addEventListener('DOMContentLoaded', () => {
 
-        // =================================================================================
-        // APP STATE & DATABASE
-        // =================================================================================
-        const app = {
-            data: {
-                projects: [],
-                kanbanState: {} // { projectId: { sprintId: { columnOrder: [], columns: {} } } }
-            },
-            currentView: 'home',
-            currentProjectId: null,
-            currentProjectTab: 'tasks',
-            
-            // --- Database Logic ---
-            db: {
-                load() {
-                    const data = localStorage.getItem('projectScopeData');
-                    if (data) {
-                        app.data = JSON.parse(data);
-                    } else {
-                        // Initialize with default structure if nothing is in localStorage
-                        app.data = { projects: [], kanbanState: {} };
-                        this.save();
-                    }
-                },
-                save() {
-                    localStorage.setItem('projectScopeData', JSON.stringify(app.data));
-                }
-            },
-            
-            // --- Initialization ---
-            init() {
-                this.db.load();
-                this.router.navigateTo('home');
-                this.attachEventListeners();
-                this.updateGreeting();
-                setInterval(this.updateGreeting, 60000); // Update time every minute
-            },
-            
-            // =================================================================================
-            // ROUTER & NAVIGATION
-            // =================================================================================
-            router: {
-                navigateTo(view, params = {}) {
-                    document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
-                    const targetView = document.getElementById(`view-${view}`);
-                    if (targetView) {
-                        targetView.classList.remove('hidden');
-                        app.currentView = view;
-                    }
+    <!-- Modals -->
+    <!-- Create Project Modal -->
+    <div id="create-project-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg p-6 w-full max-w-md">
+                <h3 class="text-xl font-bold title-color mb-4">Crear Nuevo Proyecto</h3>
+                <form id="create-project-form">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nombre del Proyecto</label>
+                        <input type="text" id="project-name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
+                        <textarea id="project-description" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3"></textarea>
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" onclick="closeCreateProjectModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancelar</button>
+                        <button type="submit" class="btn-save text-white px-6 py-2 rounded-lg hover:bg-opacity-90">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
-                    // Update active nav link
-                    document.querySelectorAll('.nav-link').forEach(link => {
-                        link.classList.remove('bg-white/30', 'font-bold');
-                        if (link.dataset.view === view) {
-                            link.classList.add('bg-white/30', 'font-bold');
-                        }
-                    });
+    <!-- Create Task Modal -->
+    <div id="create-task-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg p-6 w-full max-w-lg">
+                <h3 class="text-xl font-bold title-color mb-4">Crear Nueva Tarea</h3>
+                <form id="create-task-form">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Título</label>
+                            <input type="text" id="task-title" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Responsable</label>
+                            <input type="text" id="task-assignee" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
+                        <textarea id="task-description" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3"></textarea>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Prioridad</label>
+                            <select id="task-priority" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="Baja">Baja</option>
+                                <option value="Media">Media</option>
+                                <option value="Alta">Alta</option>
+                                <option value="Crítica">Crítica</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Fecha Inicio</label>
+                            <input type="date" id="task-start-date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Fecha Fin</label>
+                            <input type="date" id="task-end-date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Comentarios</label>
+                        <textarea id="task-comments" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows="2"></textarea>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Agregar a Sprint</label>
+                        <select id="task-sprint" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">No agregar a sprint</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" onclick="closeCreateTaskModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancelar</button>
+                        <button type="submit" class="btn-save text-white px-6 py-2 rounded-lg hover:bg-opacity-90">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
-                    // Handle specific view rendering
-                    switch(view) {
-                        case 'home':
-                            app.render.home();
-                            break;
-                        case 'projects':
-                            app.render.projectsList();
-                            break;
-                        case 'single-project':
-                            app.currentProjectId = params.projectId;
-                            app.currentProjectTab = params.tab || 'tasks';
-                            app.render.singleProject();
-                            break;
-                        case 'analytics':
-                            // No specific render needed for coming soon page
-                            break;
-                    }
-                }
-            },
+    <!-- Create Sprint Modal -->
+    <div id="create-sprint-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg p-6 w-full max-w-md">
+                <h3 class="text-xl font-bold title-color mb-4">Crear Sprint</h3>
+                <form id="create-sprint-form">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Fecha Inicio</label>
+                        <input type="date" id="sprint-start-date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Fecha Fin</label>
+                        <input type="date" id="sprint-end-date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" onclick="closeCreateSprintModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancelar</button>
+                        <button type="submit" class="btn-save text-white px-6 py-2 rounded-lg hover:bg-opacity-90">Crear Sprint</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
-            // =================================================================================
-            // RENDER FUNCTIONS
-            // =================================================================================
-            render: {
-                home() {
-                    const tasksContainer = document.getElementById('home-tasks-container');
-                    const projectsContainer = document.getElementById('home-projects-container');
-                    tasksContainer.innerHTML = '';
-                    projectsContainer.innerHTML = '';
+    <!-- Add Column Modal -->
+    <div id="add-column-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg p-6 w-full max-w-md">
+                <h3 class="text-xl font-bold title-color mb-4">Agregar Nueva Columna</h3>
+                <form id="add-column-form">
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nombre de la Columna</label>
+                        <input type="text" id="column-name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" onclick="closeAddColumnModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancelar</button>
+                        <button type="submit" class="btn-save text-white px-6 py-2 rounded-lg hover:bg-opacity-90">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
-                    // Render Tasks
-                    let inProgressTasks = [];
-                    app.data.projects.forEach(p => {
-                        (p.tasks || []).forEach(t => {
-                            if (t.status === 'En Progreso') {
-                                inProgressTasks.push({ ...t, projectName: p.name });
-                            }
-                        });
-                    });
+    <!-- Create Risk Modal -->
+    <div id="create-risk-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
+                <h3 class="text-xl font-bold title-color mb-4">Registrar Nuevo Riesgo</h3>
+                <form id="create-risk-form">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Nombre del Riesgo</label>
+                            <input type="text" id="risk-name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+                            <select id="risk-status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="Activo">Activo</option>
+                                <option value="Mitigado">Mitigado</option>
+                                <option value="Cerrado">Cerrado</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Impacto</label>
+                            <select id="risk-impact" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                <option value="1">1 - Menor</option>
+                                <option value="2">2 - Moderado</option>
+                                <option value="3">3 - Mayor</option>
+                                <option value="4">4 - Catastrófico</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Probabilidad</label>
+                            <select id="risk-probability" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                <option value="1">1 - Posible</option>
+                                <option value="2">2 - Ocasional</option>
+                                <option value="3">3 - Probable</option>
+                                <option value="4">4 - Frecuente</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
+                        <textarea id="risk-description" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3"></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Plan de Mitigación</label>
+                        <textarea id="risk-mitigation" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3"></textarea>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Estrategia</label>
+                        <select id="risk-strategy" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="Aceptar">Aceptar</option>
+                            <option value="Mitigar">Mitigar</option>
+                            <option value="Transferir">Transferir</option>
+                            <option value="Evitar">Evitar</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" onclick="closeCreateRiskModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancelar</button>
+                        <button type="submit" class="btn-save text-white px-6 py-2 rounded-lg hover:bg-opacity-90">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
-                    if (inProgressTasks.length > 0) {
-                        const table = document.createElement('table');
-                        table.className = 'w-full text-left';
-                        table.innerHTML = `
-                            <thead>
-                                <tr class="border-b">
-                                    <th class="py-2 px-3">Tarea</th>
-                                    <th class="py-2 px-3">Proyecto</th>
-                                    <th class="py-2 px-3">Fin</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${inProgressTasks.map(t => `
-                                    <tr class="border-b border-gray-100">
-                                        <td class="py-2 px-3">${t.title}</td>
-                                        <td class="py-2 px-3 text-gray-600">${t.projectName}</td>
-                                        <td class="py-2 px-3 text-sm">${t.endDate}</td>
-                                    </tr>`).join('')}
-                            </tbody>`;
-                        tasksContainer.appendChild(table);
-                    } else {
-                        tasksContainer.innerHTML = `<p class="text-gray-500 italic">No tienes tareas en progreso.</p>`;
-                    }
+    <!-- Create Meeting Minutes Modal -->
+    <div id="create-minutes-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg p-6 w-full max-w-md">
+                <h3 class="text-xl font-bold title-color mb-4">Crear Nueva Acta</h3>
+                <form id="create-minutes-form">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Título</label>
+                        <input type="text" id="minutes-title" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Fecha</label>
+                        <input type="date" id="minutes-date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" onclick="closeCreateMinutesModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancelar</button>
+                        <button type="submit" class="btn-save text-white px-6 py-2 rounded-lg hover:bg-opacity-90">Crear Acta</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
-                    // Render Projects
-                    const addProjectCard = `
-                        <button data-action="show-project-modal" class="border-2 border-dashed border-gray-300 rounded-xl p-4 flex flex-col items-center justify-center text-gray-500 hover:bg-gray-100 hover:border-title transition-colors h-full">
-                            <i class="fa-solid fa-plus text-3xl mb-2"></i>
-                            <span class="font-semibold">Agregar Proyecto</span>
-                        </button>`;
-                    projectsContainer.innerHTML = addProjectCard;
+    <!-- Task Details Modal -->
+    <div id="task-details-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg p-6 w-full max-w-lg">
+                <div class="flex justify-between items-start mb-4">
+                    <h3 class="text-xl font-bold title-color">Detalles de la Tarea</h3>
+                    <button onclick="closeTaskDetailsModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div id="task-details-content">
+                    <!-- Task details will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
 
-                    app.data.projects.forEach(p => {
-                        const projectCard = document.createElement('div');
-                        projectCard.className = 'bg-gray-50 border border-gray-200 rounded-xl p-4 cursor-pointer hover:shadow-lg hover:border-title transition-all group';
-                        projectCard.dataset.action = 'view-project';
-                        projectCard.dataset.projectId = p.id;
-                        projectCard.innerHTML = `
-                            <div class="flex justify-between items-start">
-                                <div class="w-10/12">
-                                    <h3 class="font-bold text-lg text-title truncate">${p.name}</h3>
-                                    <p class="text-gray-600 text-sm mt-1 truncate">${p.description}</p>
-                                </div>
-                                <button data-action="delete-project" data-project-id="${p.id}" class="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <i class="fa-solid fa-trash-can"></i>
-                                </button>
-                            </div>
-                            <div class="mt-3 text-xs text-gray-500">
-                                <span>${(p.tasks || []).length} Tareas</span>
-                                <span class="mx-1">|</span>
-                                <span>${(p.risks || []).length} Riesgos</span>
-                            </div>`;
-                        projectsContainer.appendChild(projectCard);
-                    });
-                },
+    <!-- Edit Task Modal -->
+    <div id="edit-task-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg p-6 w-full max-w-2xl">
+                <div class="flex justify-between items-start mb-6">
+                    <h3 class="text-xl font-bold title-color">Editar Tarea</h3>
+                    <button onclick="closeEditTaskModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <form id="edit-task-form" onsubmit="event.preventDefault(); app.updateTask();">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Título</label>
+                            <input type="text" id="edit-task-title" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
+                            <textarea id="edit-task-description" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Responsable</label>
+                            <input type="text" id="edit-task-assignee" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Prioridad</label>
+                            <select id="edit-task-priority" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                <option value="Baja">Baja</option>
+                                <option value="Media">Media</option>
+                                <option value="Alta">Alta</option>
+                                <option value="Crítica">Crítica</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+                            <select id="edit-task-status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                <option value="Por Hacer">Por Hacer</option>
+                                <option value="En Progreso">En Progreso</option>
+                                <option value="Impedimento">Impedimento</option>
+                                <option value="Terminado">Terminado</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Fecha Inicio</label>
+                            <input type="date" id="edit-task-start-date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Fecha Fin</label>
+                            <input type="date" id="edit-task-end-date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Comentarios</label>
+                            <textarea id="edit-task-comments" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows="2"></textarea>
+                        </div>
+                    </div>
+                    <div class="flex justify-end space-x-3 mt-6">
+                        <button type="button" onclick="closeEditTaskModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancelar</button>
+                        <button type="submit" class="btn-save text-white px-6 py-2 rounded-lg hover:bg-opacity-90">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
-                projectsList() {
-                    const grid = document.getElementById('projects-grid');
-                    grid.innerHTML = '';
-                    if (app.data.projects.length === 0) {
-                        grid.innerHTML = `<p class="text-gray-500 italic col-span-full">No hay proyectos creados. ¡Crea el primero!</p>`;
-                        return;
-                    }
-                    app.data.projects.forEach(project => {
-                        const card = document.createElement('div');
-                        card.className = "bg-white p-6 rounded-xl shadow-md transition-transform hover:-translate-y-1 group";
-                        card.innerHTML = `
-                            <div data-action="view-project" data-project-id="${project.id}" class="cursor-pointer">
-                                <h3 class="text-xl font-bold text-title">${project.name}</h3>
-                                <p class="text-gray-600 mt-2 h-12 overflow-hidden text-ellipsis">${project.description}</p>
-                            </div>
-                            <div class="mt-4 pt-4 border-t border-gray-200 flex justify-between items-center text-sm text-gray-500">
-                                <div>
-                                    <span>${(project.tasks || []).length} Tareas</span>
-                                    <span class="mx-2">|</span>
-                                    <span>${(project.sprints || []).length} Sprints</span>
-                                </div>
-                                <button data-action="delete-project" data-project-id="${project.id}" class="text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-all text-lg">
-                                    <i class="fa-regular fa-trash-can"></i>
-                                </button>
-                            </div>
-                        `;
-                        grid.appendChild(card);
-                    });
-                },
+    <!-- Edit Risk Modal -->
+    <div id="edit-risk-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg p-6 w-full max-w-2xl">
+                <div class="flex justify-between items-start mb-6">
+                    <h3 class="text-xl font-bold title-color">Editar Riesgo</h3>
+                    <button onclick="closeEditRiskModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <form id="edit-risk-form" onsubmit="event.preventDefault(); app.updateRisk();">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Nombre del Riesgo</label>
+                            <input type="text" id="edit-risk-name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Impacto</label>
+                            <select id="edit-risk-impact" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                <option value="1">1 - Posible</option>
+                                <option value="2">2 - Moderado</option>
+                                <option value="3">3 - Significativo</option>
+                                <option value="4">4 - Crítico</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Probabilidad</label>
+                            <select id="edit-risk-probability" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                <option value="1">1 - Baja</option>
+                                <option value="2">2 - Media</option>
+                                <option value="3">3 - Alta</option>
+                                <option value="4">4 - Muy Alta</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
+                            <textarea id="edit-risk-description" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3"></textarea>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Plan de Mitigación</label>
+                            <textarea id="edit-risk-mitigation" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Estrategia</label>
+                            <select id="edit-risk-strategy" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                <option value="Aceptar">Aceptar</option>
+                                <option value="Mitigar">Mitigar</option>
+                                <option value="Transferir">Transferir</option>
+                                <option value="Evitar">Evitar</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+                            <select id="edit-risk-status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                <option value="Activo">Activo</option>
+                                <option value="Mitigado">Mitigado</option>
+                                <option value="Cerrado">Cerrado</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex justify-end space-x-3 mt-6">
+                        <button type="button" onclick="closeEditRiskModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancelar</button>
+                        <button type="submit" class="btn-save text-white px-6 py-2 rounded-lg hover:bg-opacity-90">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
-                singleProject() {
-                    const project = app.get.projectById(app.currentProjectId);
-                    if (!project) {
-                        console.error('Project not found');
-                        app.router.navigateTo('projects');
-                        return;
-                    }
-                    
-                    document.getElementById('project-title').textContent = project.name;
-
-                    const tabs = [
-                        { id: 'tasks', name: 'Tareas' },
-                        { id: 'board', name: 'Tablero' },
-                        { id: 'metrics', name: 'Métricas' },
-                        { id: 'risks', name: 'Gestión de Riesgos' },
-                        { id: 'timeline', name: 'Cronograma' },
-                        { id: 'minutes', name: 'Actas' },
-                    ];
-
-                    const tabsContainer = document.getElementById('project-tabs');
-                    tabsContainer.innerHTML = tabs.map(tab => `
-                        <a href="#" data-tab="${tab.id}" class="project-tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm
-                            ${app.currentProjectTab === tab.id ? 'border-title text-title' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}">
-                            ${tab.name}
-                        </a>
-                    `).join('');
-
-                    const contentContainer = document.getElementById('project-content');
-                    switch(app.currentProjectTab) {
-                        case 'tasks': this.projectTasks(contentContainer, project); break;
-                        case 'board': this.projectBoard(contentContainer, project); break;
-                        case 'metrics': this.projectMetrics(contentContainer, project); break;
-                        case 'risks': this.projectRisks(contentContainer, project); break;
-                        case 'timeline': this.projectTimeline(contentContainer, project); break;
-                        case 'minutes': this.projectMinutes(contentContainer, project); break;
-                    }
-                },
+    <!-- Data Management Modal -->
+    <div id="data-management-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg p-6 w-full max-w-2xl">
+                <div class="flex justify-between items-start mb-6">
+                    <h3 class="text-xl font-bold title-color">Gestión de Datos</h3>
+                    <button onclick="closeDataManagementModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
                 
-                projectTasks(container, project) {
-                    container.innerHTML = `
-                        <div class="flex justify-between items-center mb-4">
-                            <button id="btn-show-task-modal" class="btn-create font-bold py-2 px-4 rounded-lg flex items-center gap-2">
-                                <i class="fa-solid fa-plus"></i> Crear Tarea
+                <div class="space-y-6">
+                    <!-- Export Section -->
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <h4 class="text-lg font-semibold text-gray-800 mb-3">
+                            <i class="fas fa-download mr-2 text-blue-600"></i>Exportar Datos
+                        </h4>
+                        <p class="text-gray-600 mb-4">Descarga todos tus datos en un archivo JSON para respaldo o migración.</p>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <button onclick="app.exportData()" class="btn-save text-white px-4 py-2 rounded-lg hover:bg-opacity-90 flex items-center justify-center">
+                                <i class="fas fa-file-export mr-2"></i>Descargar Datos
                             </button>
-                            <button id="btn-create-sprint" disabled class="bg-gray-300 text-gray-500 font-bold py-2 px-4 rounded-lg flex items-center gap-2 cursor-not-allowed">
-                                Crear Sprint
+                            <div class="text-sm text-gray-500 flex items-center">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Se descargará un archivo .json con todos tus datos
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Import Section -->
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <h4 class="text-lg font-semibold text-gray-800 mb-3">
+                            <i class="fas fa-upload mr-2 text-green-600"></i>Importar Datos
+                        </h4>
+                        <p class="text-gray-600 mb-4">Carga datos desde un archivo JSON previamente exportado.</p>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <input type="file" id="import-file" accept=".json" class="hidden" onchange="app.handleFileImport(event)">
+                            <button onclick="document.getElementById('import-file').click()" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-opacity-90 flex items-center justify-center">
+                                <i class="fas fa-file-import mr-2"></i>Seleccionar Archivo
                             </button>
-                        </div>
-                        <div class="bg-white rounded-xl shadow-md overflow-x-auto">
-                            <table class="w-full text-sm text-left text-gray-500">
-                                <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-                                    <tr>
-                                        <th class="p-4"><input type="checkbox" id="select-all-tasks"></th>
-                                        <th class="px-6 py-3">ID</th>
-                                        <th class="px-6 py-3">Título</th>
-                                        <th class="px-6 py-3">Estado</th>
-                                        <th class="px-6 py-3">Responsable</th>
-                                        <th class="px-6 py-3">Prioridad</th>
-                                        <th class="px-6 py-3">Fin</th>
-                                        <th class="px-6 py-3">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tasks-table-body"></tbody>
-                            </table>
-                        </div>`;
-
-                    const tableBody = document.getElementById('tasks-table-body');
-                    if (!project.tasks || project.tasks.length === 0) {
-                        tableBody.innerHTML = `<tr><td colspan="8" class="text-center p-6 italic text-gray-500">No hay tareas en este proyecto.</td></tr>`;
-                    } else {
-                        tableBody.innerHTML = project.tasks.map(task => `
-                            <tr class="bg-white border-b hover:bg-gray-50">
-                                <td class="w-4 p-4"><input type="checkbox" class="task-checkbox" data-task-id="${task.id}" ${task.sprintId ? 'disabled' : ''}></td>
-                                <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">${task.id}</td>
-                                <td class="px-6 py-4">${task.title}</td>
-                                <td class="px-6 py-4">${task.status}</td>
-                                <td class="px-6 py-4">${task.responsible}</td>
-                                <td class="px-6 py-4">${task.priority}</td>
-                                <td class="px-6 py-4">${task.endDate}</td>
-                                <td class="px-6 py-4">
-                                    <button data-action="delete-task" data-task-id="${task.id}" class="text-red-500 hover:text-red-700">
-                                        <i class="fa-solid fa-trash-can"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        `).join('');
-                    }
-                },
-                
-                projectBoard(container, project) {
-                    const latestSprint = app.get.latestSprint(project.id);
-                    if (!latestSprint) {
-                        container.innerHTML = `<div class="text-center p-8 bg-white rounded-xl shadow-md"><p class="text-gray-600">No hay sprints activos. Ve a la pestaña 'Tareas' para crear uno.</p></div>`;
-                        return;
-                    }
-                    
-                    const kanban = app.get.kanbanState(project.id, latestSprint.id);
-                    const startDate = new Date(latestSprint.startDate);
-                    const endDate = new Date(latestSprint.endDate);
-                    const now = new Date();
-                    const totalDuration = endDate - startDate;
-                    const elapsed = now - startDate;
-                    const percentage = totalDuration > 0 ? Math.min(100, Math.max(0, (elapsed / totalDuration) * 100)) : 0;
-
-                    container.innerHTML = `
-                        <div class="mb-6 p-4 bg-white rounded-xl shadow-md">
-                            <div class="flex justify-between items-center">
-                                <div class="flex items-center gap-4">
-                                     <h2 class="text-2xl font-bold text-title">${latestSprint.name}</h2>
-                                     <button data-action="delete-sprint" class="text-red-500 hover:text-red-700 text-sm"><i class="fa-solid fa-trash-can mr-1"></i> Eliminar Sprint</button>
-                                </div>
-                                <button id="btn-show-add-column-modal" class="btn-create text-sm py-2 px-3 rounded-lg">+ Agregar Columna</button>
-                            </div>
-                            <div class="text-sm text-gray-600 mt-2">
-                                <span>${app.helpers.formatDate(latestSprint.startDate)}</span> - <span>${app.helpers.formatDate(latestSprint.endDate)}</span>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
-                                <div class="bg-blue-600 h-2.5 rounded-full" style="width: ${percentage.toFixed(2)}%"></div>
-                            </div>
-                            <p class="text-right text-xs text-gray-500 mt-1">${percentage.toFixed(0)}% completado</p>
-                        </div>
-                        <div id="kanban-board" class="flex gap-4 overflow-x-auto pb-4 custom-scroll"></div>`;
-                    
-                    const boardContainer = document.getElementById('kanban-board');
-                    kanban.columnOrder.forEach((columnId, index) => {
-                        const column = kanban.columns[columnId];
-                        const columnEl = document.createElement('div');
-                        columnEl.className = 'kanban-column bg-gray-100 rounded-lg p-3 w-72 flex-shrink-0';
-                        columnEl.dataset.columnId = column.id;
-                        columnEl.setAttribute('draggable', true);
-                        
-                        const isDeletable = index > 3; // First 4 columns are not deletable
-                        columnEl.innerHTML = `
-                            <div class="flex justify-between items-center mb-3 px-1">
-                                <h3 class="font-semibold text-gray-700">${column.title}</h3>
-                                ${isDeletable ? `<button data-action="delete-column" data-column-id="${column.id}" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-times"></i></button>` : ''}
-                            </div>
-                            <div class="kanban-cards space-y-3 min-h-[100px]"></div>`;
-                        
-                        const cardsContainer = columnEl.querySelector('.kanban-cards');
-                        column.taskIds.forEach(taskId => {
-                            const task = app.get.taskById(project.id, taskId);
-                            if (task) {
-                                const cardEl = document.createElement('div');
-                                cardEl.className = 'kanban-card bg-white rounded-md p-3 shadow cursor-grab';
-                                cardEl.dataset.taskId = task.id;
-                                cardEl.setAttribute('draggable', true);
-                                cardEl.innerHTML = `
-                                    <p class="font-medium text-sm">${task.title}</p>
-                                    <div class="text-xs text-gray-500 mt-2 flex justify-between">
-                                        <span>${task.responsible}</span>
-                                        <span class="font-bold">${task.priority}</span>
-                                    </div>`;
-                                cardsContainer.appendChild(cardEl);
-                            }
-                        });
-                        
-                        boardContainer.appendChild(columnEl);
-                    });
-                     app.attachKanbanDDListeners();
-                },
-
-                projectMetrics(container, project) {
-                    container.innerHTML = `<div class="flex flex-col items-center justify-center h-64">
-                        <i class="fa-solid fa-hourglass-half text-6xl text-gray-400 mb-4"></i>
-                        <h2 class="text-2xl font-bold text-title">Próximamente</h2>
-                        <p class="text-gray-600 mt-2">La vista de métricas estará disponible pronto.</p>
-                     </div>`;
-                },
-
-                projectRisks(container, project) {
-                    container.innerHTML = `
-                        <div class="flex justify-end mb-4">
-                            <button id="btn-show-risk-modal" class="btn-create font-bold py-2 px-4 rounded-lg flex items-center gap-2">Registrar Nuevo Riesgo</button>
-                        </div>
-                        <div class="bg-white rounded-xl shadow-md overflow-x-auto mb-8">
-                            <table class="w-full text-sm text-left">
-                                <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-                                    <tr>
-                                        <th class="px-6 py-3">ID</th>
-                                        <th class="px-6 py-3">Nombre del Riesgo</th>
-                                        <th class="px-6 py-3">Factor</th>
-                                        <th class="px-6 py-3">Apetito</th>
-                                        <th class="px-6 py-3">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="risks-table-body"></tbody>
-                            </table>
-                        </div>
-                        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
-                            <div class="lg:col-span-3 bg-white p-6 rounded-xl shadow-md">
-                                <h3 class="font-bold text-lg text-title mb-4">Matriz de Riesgos (Impacto vs Probabilidad)</h3>
-                                <div id="risk-matrix" class="grid grid-cols-5 gap-1"></div>
-                            </div>
-                            <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-md">
-                                <h3 class="font-bold text-lg text-title mb-4">Resumen de Riesgos</h3>
-                                <div id="risk-summary"></div>
-                            </div>
-                        </div>`;
-
-                    const tableBody = document.getElementById('risks-table-body');
-                    if (!project.risks || project.risks.length === 0) {
-                        tableBody.innerHTML = `<tr><td colspan="5" class="text-center p-6 italic text-gray-500">No hay riesgos registrados.</td></tr>`;
-                    } else {
-                        tableBody.innerHTML = project.risks.map(risk => `
-                            <tr class="border-b hover:bg-gray-50">
-                                <td class="px-6 py-4 font-medium text-gray-900">${risk.id}</td>
-                                <td class="px-6 py-4">${risk.name}</td>
-                                <td class="px-6 py-4">${risk.factor}</td>
-                                <td class="px-6 py-4"><span class="px-2 py-1 text-xs font-semibold rounded-full" style="background-color:${risk.appetite.color}; color: ${risk.appetite.textColor || '#fff'}">${risk.appetite.level}</span></td>
-                                <td class="px-6 py-4">
-                                    <button data-action="delete-risk" data-risk-id="${risk.id}" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash-can"></i></button>
-                                </td>
-                            </tr>
-                        `).join('');
-                    }
-                    
-                    this.riskMatrix(document.getElementById('risk-matrix'), project.risks || []);
-                    this.riskSummary(document.getElementById('risk-summary'), project.risks || []);
-                },
-                
-                riskMatrix(container, risks) {
-                    const impactLabels = { 4: 'Catastrófico', 3: 'Mayor', 2: 'Moderado', 1: 'Menor' };
-                    const probLabels = { 1: 'Posible', 2: 'Ocasional', 3: 'Probable', 4: 'Frecuente' };
-                    container.innerHTML = '';
-                    const matrixData = Array(4).fill(null).map(() => Array(4).fill(null).map(() => []));
-
-                    risks.forEach(risk => {
-                        matrixData[4 - risk.impact][risk.probability - 1].push(risk.id);
-                    });
-                    
-                    container.innerHTML += `<div class="font-bold text-xs text-center flex items-end justify-center">Impacto <i class="fa-solid fa-arrow-right-long mx-1"></i></div>`; // Corner
-                    for (let p = 1; p <= 4; p++) {
-                        container.innerHTML += `<div class="font-bold text-xs text-center p-1">${probLabels[p]}</div>`;
-                    }
-
-                    for (let i = 4; i >= 1; i--) {
-                        container.innerHTML += `<div class="font-bold text-xs text-center p-1 flex items-center justify-center">${impactLabels[i]}</div>`;
-                        for (let p = 1; p <= 4; p++) {
-                            const factor = i * p;
-                            const appetite = app.helpers.calculateRiskAppetite(factor);
-                            const cellRisks = matrixData[4 - i][p - 1];
-                            container.innerHTML += `
-                                <div class="h-16 text-xs p-1 rounded flex items-center justify-center text-center" style="background-color: ${appetite.color}33;">
-                                    <div class="font-bold text-gray-700">${cellRisks.join(', ')}</div>
-                                </div>`;
-                        }
-                    }
-                },
-                
-                riskSummary(container, risks) {
-                    const summary = { byStatus: {}, byStrategy: {} };
-                    risks.forEach(risk => {
-                        summary.byStatus[risk.status] = (summary.byStatus[risk.status] || 0) + 1;
-                        summary.byStrategy[risk.strategy] = (summary.byStrategy[risk.strategy] || 0) + 1;
-                    });
-                    
-                    let html = '<div class="space-y-4">';
-                    html += '<div><h4 class="font-semibold text-gray-600">Por Estado</h4><ul class="list-disc list-inside mt-1 text-sm">';
-                    Object.keys(summary.byStatus).length > 0 ? Object.entries(summary.byStatus).forEach(([k, v]) => html += `<li>${k}: ${v}</li>`) : html += `<li class="text-gray-400 italic">N/A</li>`;
-                    html += '</ul></div>';
-                    html += '<div><h4 class="font-semibold text-gray-600">Por Estrategia</h4><ul class="list-disc list-inside mt-1 text-sm">';
-                    Object.keys(summary.byStrategy).length > 0 ? Object.entries(summary.byStrategy).forEach(([k, v]) => html += `<li>${k}: ${v}</li>`) : html += `<li class="text-gray-400 italic">N/A</li>`;
-                    html += '</ul></div></div>';
-                    
-                    container.innerHTML = html;
-                },
-
-                projectTimeline(container, project) {
-                    const latestSprint = app.get.latestSprint(project.id);
-                    if (!latestSprint) {
-                        container.innerHTML = `<div class="text-center p-8 bg-white rounded-xl shadow-md"><p class="text-gray-600">No hay un sprint activo para mostrar el cronograma.</p></div>`;
-                        return;
-                    }
-
-                    const sprintTasks = latestSprint.taskIds.map(id => app.get.taskById(project.id, id)).filter(Boolean);
-                    if (sprintTasks.length === 0) {
-                        container.innerHTML = `<div class="text-center p-8 bg-white rounded-xl shadow-md"><p class="text-gray-600">Este sprint no tiene tareas asignadas.</p></div>`;
-                        return;
-                    }
-                    
-                    const startDate = new Date(latestSprint.startDate + 'T00:00:00');
-                    const endDate = new Date(latestSprint.endDate + 'T00:00:00');
-                    const days = app.helpers.daysBetween(startDate, endDate) + 1;
-                    
-                    let headerHtml = '<div class="sticky top-0 bg-gray-100 z-10 grid-cols-1"></div>';
-                    let datesHtml = '';
-                    for (let i = 0; i < days; i++) {
-                        const date = new Date(startDate);
-                        date.setDate(startDate.getDate() + i);
-                        datesHtml += `<div class="text-center text-xs border-r border-gray-200 py-2">${date.getDate()}<br>${date.toLocaleDateString('es-ES', { month: 'short' })}</div>`;
-                    }
-                    
-                    let tasksHtml = '';
-                    sprintTasks.forEach((task, index) => {
-                        const taskStart = new Date(task.startDate + 'T00:00:00');
-                        const taskEnd = new Date(task.endDate + 'T00:00:00');
-                        
-                        const startOffset = app.helpers.daysBetween(startDate, taskStart) + 1;
-                        const duration = app.helpers.daysBetween(taskStart, taskEnd) + 1;
-                        
-                        const taskColor = ['bg-blue-400', 'bg-green-400', 'bg-purple-400', 'bg-yellow-400'][index % 4];
-
-                        tasksHtml += `
-                            <div class="text-sm font-medium border-r border-gray-200 p-2 truncate">${task.title}</div>
-                            <div class="p-2 relative" style="grid-column: span ${days};">
-                                <div class="${taskColor} absolute h-2/3 top-1/2 -translate-y-1/2 rounded text-white text-xs flex items-center px-2" 
-                                     style="left: calc(${(startOffset - 1) * (100 / days)}%); width: calc(${duration * (100 / days)}%);"
-                                     title="${task.title} (${task.startDate} a ${task.endDate})">
-                                </div>
-                            </div>
-                        `;
-                    });
-
-                    container.innerHTML = `
-                    <div class="bg-white rounded-xl shadow-md p-4">
-                        <h3 class="font-bold text-lg text-title mb-4">Cronograma del ${latestSprint.name}</h3>
-                        <div class="overflow-x-auto custom-scroll border border-gray-200 rounded-lg">
-                            <div class="gantt-chart grid min-w-[800px]" style="grid-template-columns: 200px repeat(${days}, 1fr); grid-auto-rows: 40px;">
-                                <!-- Header -->
-                                <div class="font-semibold text-sm border-r border-b border-gray-200 p-2 sticky left-0 bg-gray-50 z-20">Tarea</div>
-                                <div class="border-b border-gray-200 grid" style="grid-column: 2 / -1; grid-template-columns: repeat(${days}, 1fr);">${datesHtml}</div>
-                                
-                                <!-- Task Rows -->
-                                ${tasksHtml}
+                            <div class="text-sm text-gray-500 flex items-center">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>
+                                Esto reemplazará todos los datos actuales
                             </div>
                         </div>
-                    </div>`;
-                },
+                    </div>
 
-                projectMinutes(container, project) {
-                    const minutes = (project.minutes || []).sort((a, b) => new Date(b.date) - new Date(a.date));
-                    container.innerHTML = `
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100vh-220px)]">
-                            <div class="md:col-span-1 bg-white rounded-xl shadow-md p-4 flex flex-col">
-                                <button data-action="show-minute-modal" class="btn-create w-full font-bold py-2 px-4 rounded-lg mb-4">Crear Acta</button>
-                                <div id="minutes-list" class="overflow-y-auto custom-scroll flex-grow">
-                                    ${minutes.length > 0 ? minutes.map(m => `
-                                        <div data-action="view-minute" data-minute-id="${m.id}" class="p-3 rounded-lg cursor-pointer hover:bg-gray-100">
-                                            <p class="font-semibold text-title truncate">${m.title}</p>
-                                            <p class="text-xs text-gray-500">${app.helpers.formatDate(m.date)}</p>
-                                        </div>
-                                    `).join('') : '<p class="text-center text-sm text-gray-500 italic mt-4">No hay actas creadas.</p>'}
-                                </div>
-                            </div>
-                            <div id="minute-viewer" class="md:col-span-2 bg-white rounded-xl shadow-md p-6 overflow-y-auto custom-scroll">
-                                <div class="flex flex-col items-center justify-center h-full text-center">
-                                    <i class="fa-regular fa-file-lines text-5xl text-gray-300 mb-4"></i>
-                                    <h3 class="text-xl font-semibold text-gray-600">Visor de Actas</h3>
-                                    <p class="text-gray-500 mt-1">Seleccione un acta para verla o cree una nueva.</p>
-                                </div>
-                            </div>
-                        </div>`;
-                },
-
-                minuteDetail(containerId, minuteId) {
-                    const container = document.getElementById(containerId);
-                    const minute = app.get.minuteById(app.currentProjectId, minuteId);
-                    if (!container || !minute) return;
-
-                    container.innerHTML = `
-                        <div class="flex justify-between items-start mb-4">
-                            <div>
-                                <h2 class="text-2xl font-bold text-title">${minute.title}</h2>
-                                <p class="text-sm text-gray-500">Fecha: ${app.helpers.formatDate(minute.date)}</p>
-                            </div>
-                            <div class="flex gap-2">
-                                <button data-action="edit-minute" data-minute-id="${minute.id}" class="btn-edit py-1 px-3 rounded-lg"><i class="fa-solid fa-pencil"></i></button>
-                                <button data-action="delete-minute" data-minute-id="${minute.id}" class="btn-delete py-1 px-3 rounded-lg"><i class="fa-solid fa-trash-can"></i></button>
+                    <!-- Demo Data Section -->
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <h4 class="text-lg font-semibold text-gray-800 mb-3">
+                            <i class="fas fa-database mr-2 text-purple-600"></i>Datos de Demostración
+                        </h4>
+                        <p class="text-gray-600 mb-4">Carga datos de ejemplo para probar todas las funcionalidades.</p>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <button onclick="app.loadDemoData()" class="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-opacity-90 flex items-center justify-center">
+                                <i class="fas fa-play mr-2"></i>Cargar Datos Demo
+                            </button>
+                            <div class="text-sm text-gray-500 flex items-center">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Incluye proyectos, tareas, sprints y riesgos de ejemplo
                             </div>
                         </div>
-                        <div class="prose-display mt-6">${minute.content.replace(/\n/g, '<br>')}</div>`;
-                },
+                    </div>
 
-                minuteEditor(containerId, minuteId) {
-                    const container = document.getElementById(containerId);
-                    const minute = app.get.minuteById(app.currentProjectId, minuteId);
-                    if (!container || !minute) return;
-
-                    container.innerHTML = `
-                        <h2 class="text-2xl font-bold text-title mb-2">${minute.title}</h2>
-                        <p class="text-sm text-gray-500 mb-4">Editando... (Recuerda guardar los cambios)</p>
-                        
-                        <div id="editor-toolbar" class="flex gap-2 mb-2 border rounded-t-lg p-2 bg-gray-50">
-                           <button class="px-2 py-1 text-sm rounded hover:bg-gray-200" onclick="document.execCommand('bold', false, null);" title="Negrita"><i class="fa-solid fa-bold"></i></button>
-                           <button class="px-2 py-1 text-sm rounded hover:bg-gray-200" onclick="document.execCommand('italic', false, null);" title="Cursiva"><i class="fa-solid fa-italic"></i></button>
-                           <button class="px-2 py-1 text-sm rounded hover:bg-gray-200" onclick="document.execCommand('insertUnorderedList', false, null);" title="Lista"><i class="fa-solid fa-list-ul"></i></button>
+                    <!-- Clear Data Section -->
+                    <div class="border border-red-200 rounded-lg p-4 bg-red-50">
+                        <h4 class="text-lg font-semibold text-red-800 mb-3">
+                            <i class="fas fa-trash-alt mr-2 text-red-600"></i>Zona de Peligro
+                        </h4>
+                        <p class="text-red-600 mb-4">Elimina permanentemente todos los datos almacenados.</p>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <button onclick="app.clearAllData()" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-opacity-90 flex items-center justify-center">
+                                <i class="fas fa-exclamation-triangle mr-2"></i>Limpiar Todos los Datos
+                            </button>
+                            <div class="text-sm text-red-500 flex items-center">
+                                <i class="fas fa-warning mr-1"></i>
+                                Esta acción no se puede deshacer
+                            </div>
                         </div>
-                        <div id="minute-content-editor" contenteditable="true" class="w-full h-96 p-4 border rounded-b-lg focus:outline-none focus:ring-2 focus:ring-title overflow-y-auto custom-scroll">${minute.content}</div>
+                    </div>
 
-                        <div class="flex justify-end mt-4">
-                             <button data-action="save-minute-content" data-minute-id="${minute.id}" class="btn-save py-2 px-4 rounded-lg">Guardar Contenido</button>
+                    <!-- Data Info Section -->
+                    <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                        <h4 class="text-lg font-semibold text-gray-800 mb-3">
+                            <i class="fas fa-info-circle mr-2 text-blue-600"></i>Información de Datos
+                        </h4>
+                        <div id="data-info" class="text-sm text-gray-600">
+                            <!-- Data info will be loaded here -->
                         </div>
-                    `;
-                }
+                    </div>
+                </div>
 
-            },
+                <div class="flex justify-end mt-6">
+                    <button onclick="closeDataManagementModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-            // =================================================================================
-            // MODAL HANDLERS
-            // =================================================================================
-            modals: {
-                show(content) {
-                    const container = document.getElementById('modal-container');
-                    const contentDiv = document.getElementById('modal-content');
-                    contentDiv.innerHTML = content;
-                    container.classList.remove('hidden');
-                    setTimeout(() => {
-                        contentDiv.classList.remove('scale-95', 'opacity-0');
-                        container.querySelector('.modal-backdrop').classList.remove('opacity-0');
-                    }, 10);
-                },
-                hide() {
-                    const container = document.getElementById('modal-container');
-                    const contentDiv = document.getElementById('modal-content');
-                    contentDiv.classList.add('scale-95', 'opacity-0');
-                    container.querySelector('.modal-backdrop').classList.add('opacity-0');
-                    setTimeout(() => container.classList.add('hidden'), 300);
-                },
-                confirm(message, onConfirm) {
-                    this.show(`
-                        <h2 class="text-xl font-bold text-title mb-4">Confirmación</h2>
-                        <p class="text-gray-600 mb-6">${message}</p>
-                        <div class="flex justify-end gap-4">
-                            <button type="button" class="btn-cancel py-2 px-4 rounded-lg" data-action="close-modal">Cancelar</button>
-                            <button type="button" id="confirm-delete-btn" class="btn-delete py-2 px-4 rounded-lg">Confirmar</button>
-                        </div>
-                    `);
-                    document.getElementById('confirm-delete-btn').onclick = () => {
-                        onConfirm();
-                        this.hide();
-                    };
-                },
-                project() {
-                    this.show(`
-                        <h2 class="text-2xl font-bold text-title mb-6">Crear Nuevo Proyecto</h2>
-                        <form id="form-add-project">
-                            <div class="mb-4"><label for="project-name" class="block text-sm font-medium text-gray-700">Nombre del Proyecto</label><input type="text" id="project-name" name="name" required class="mt-1 block w-full input"></div>
-                            <div class="mb-6"><label for="project-desc" class="block text-sm font-medium text-gray-700">Descripción</label><textarea id="project-desc" name="description" rows="3" required class="mt-1 block w-full input"></textarea></div>
-                            <div class="flex justify-end gap-4">
-                                <button type="button" class="btn-cancel py-2 px-4 rounded-lg" data-action="close-modal">Cancelar</button>
-                                <button type="submit" class="btn-save py-2 px-4 rounded-lg">Guardar Proyecto</button>
-                            </div>
-                        </form>
-                        <style>.input { border-radius: 0.375rem; border: 1px solid #D1D5DB; padding: 0.5rem 0.75rem; } .input:focus { outline: 2px solid transparent; outline-offset: 2px; box-shadow: 0 0 0 2px #335a82; }</style>
-                    `);
-                },
-                 task() {
-                    this.show(`
-                        <h2 class="text-2xl font-bold text-title mb-6">Crear Nueva Tarea</h2>
-                        <form id="form-add-task">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="col-span-2"><label class="block text-sm font-medium">Título</label><input type="text" name="title" required class="mt-1 w-full input"></div>
-                                <div class="col-span-2"><label class="block text-sm font-medium">Descripción</label><textarea name="description" rows="2" class="mt-1 w-full input"></textarea></div>
-                                <div><label class="block text-sm font-medium">Responsable</label><input type="text" name="responsible" required class="mt-1 w-full input"></div>
-                                <div><label class="block text-sm font-medium">Prioridad</label><select name="priority" required class="mt-1 w-full input"><option>Baja</option><option>Media</option><option>Alta</option><option>Crítica</option></select></div>
-                                <div><label class="block text-sm font-medium">Fecha Inicio</label><input type="date" name="startDate" required class="mt-1 w-full input"></div>
-                                <div><label class="block text-sm font-medium">Fecha Fin</label><input type="date" name="endDate" required class="mt-1 w-full input"></div>
-                                <div class="col-span-2"><label class="block text-sm font-medium">Comentarios</label><textarea name="comments" rows="2" class="mt-1 w-full input"></textarea></div>
-                            </div>
-                            <div class="flex justify-end gap-4 mt-6">
-                                <button type="button" class="btn-cancel py-2 px-4 rounded-lg" data-action="close-modal">Cancelar</button>
-                                <button type="submit" class="btn-save py-2 px-4 rounded-lg">Guardar Tarea</button>
-                            </div>
-                        </form>
-                        <style>.input { border-radius: 0.375rem; border: 1px solid #D1D5DB; padding: 0.5rem 0.75rem; } .input:focus { outline: 2px solid transparent; outline-offset: 2px; box-shadow: 0 0 0 2px #335a82; }</style>
-                    `);
-                },
-                sprint(taskIds) {
-                    this.show(`
-                        <h2 class="text-2xl font-bold text-title mb-6">Crear Nuevo Sprint</h2>
-                        <p class="text-sm text-gray-600 mb-4">Se agregarán ${taskIds.length} tareas al nuevo sprint.</p>
-                        <form id="form-create-sprint">
-                            <input type="hidden" name="taskIds" value="${taskIds.join(',')}">
-                            <div class="grid grid-cols-2 gap-4 mb-6">
-                                <div><label class="block text-sm font-medium">Fecha Inicio</label><input type="date" name="startDate" required class="mt-1 w-full input"></div>
-                                <div><label class="block text-sm font-medium">Fecha Fin</label><input type="date" name="endDate" required class="mt-1 w-full input"></div>
-                            </div>
-                            <div class="flex justify-end gap-4">
-                                <button type="button" class="btn-cancel py-2 px-4 rounded-lg" data-action="close-modal">Cancelar</button>
-                                <button type="submit" class="btn-save py-2 px-4 rounded-lg">Crear Sprint</button>
-                            </div>
-                        </form>
-                        <style>.input { border-radius: 0.375rem; border: 1px solid #D1D5DB; padding: 0.5rem 0.75rem; } .input:focus { outline: 2px solid transparent; outline-offset: 2px; box-shadow: 0 0 0 2px #335a82; }</style>
-                    `);
-                },
-                addColumn() {
-                    this.show(`
-                        <h2 class="text-2xl font-bold text-title mb-6">Agregar Nueva Columna</h2>
-                        <form id="form-add-column">
-                            <div class="mb-4"><label for="column-name" class="block text-sm font-medium">Nombre de la Columna</label><input type="text" id="column-name" name="name" required class="mt-1 w-full input"></div>
-                            <div class="flex justify-end gap-4 mt-6">
-                                <button type="button" class="btn-cancel py-2 px-4 rounded-lg" data-action="close-modal">Cancelar</button>
-                                <button type="submit" class="btn-save py-2 px-4 rounded-lg">Guardar</button>
-                            </div>
-                        </form>
-                        <style>.input { border-radius: 0.375rem; border: 1px solid #D1D5DB; padding: 0.5rem 0.75rem; } .input:focus { outline: 2px solid transparent; outline-offset: 2px; box-shadow: 0 0 0 2px #335a82; }</style>
-                    `);
-                },
-                risk() {
-                    this.show(`
-                        <h2 class="text-2xl font-bold text-title mb-6">Registrar Nuevo Riesgo</h2>
-                        <form id="form-add-risk">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="col-span-2"><label class="block text-sm font-medium">Nombre del Riesgo</label><input type="text" name="name" required class="mt-1 w-full input"></div>
-                                <div><label class="block text-sm font-medium">Impacto</label><select name="impact" required class="mt-1 w-full input"><option value="1">1 - Menor</option><option value="2">2 - Moderado</option><option value="3">3 - Mayor</option><option value="4">4 - Catastrófico</option></select></div>
-                                <div><label class="block text-sm font-medium">Probabilidad</label><select name="probability" required class="mt-1 w-full input"><option value="1">1 - Posible</option><option value="2">2 - Ocasional</option><option value="3">3 - Probable</option><option value="4">4 - Frecuente</option></select></div>
-                                <div class="col-span-2"><label class="block text-sm font-medium">Descripción</label><textarea name="description" rows="2" class="mt-1 w-full input"></textarea></div>
-                                <div class="col-span-2"><label class="block text-sm font-medium">Plan de Mitigación</label><textarea name="mitigationPlan" rows="2" class="mt-1 w-full input"></textarea></div>
-                                <div><label class="block text-sm font-medium">Estrategia</label><select name="strategy" required class="mt-1 w-full input"><option>Aceptar</option><option>Mitigar</option><option>Transferir</option><option>Evitar</option></select></div>
-                                <div><label class="block text-sm font-medium">Estado</label><select name="status" required class="mt-1 w-full input"><option>Abierto</option><option>Cerrado</option><option>Monitoreando</option></select></div>
-                            </div>
-                            <div class="flex justify-end gap-4 mt-6">
-                                <button type="button" class="btn-cancel py-2 px-4 rounded-lg" data-action="close-modal">Cancelar</button>
-                                <button type="submit" class="btn-save py-2 px-4 rounded-lg">Guardar Riesgo</button>
-                            </div>
-                        </form>
-                        <style>.input { border-radius: 0.375rem; border: 1px solid #D1D5DB; padding: 0.5rem 0.75rem; } .input:focus { outline: 2px solid transparent; outline-offset: 2px; box-shadow: 0 0 0 2px #335a82; }</style>
-                    `);
-                },
-                minute() {
-                     this.show(`
-                        <h2 class="text-2xl font-bold text-title mb-6">Crear Nueva Acta</h2>
-                        <form id="form-add-minute">
-                            <div class="mb-4"><label for="minute-title" class="block text-sm font-medium text-gray-700">Título del Acta</label><input type="text" id="minute-title" name="title" required class="mt-1 block w-full input"></div>
-                            <div class="mb-6"><label for="minute-date" class="block text-sm font-medium text-gray-700">Fecha</label><input type="date" id="minute-date" name="date" required class="mt-1 block w-full input"></div>
-                            <div class="flex justify-end gap-4">
-                                <button type="button" class="btn-cancel py-2 px-4 rounded-lg" data-action="close-modal">Cancelar</button>
-                                <button type="submit" class="btn-save py-2 px-4 rounded-lg">Crear y Editar</button>
-                            </div>
-                        </form>
-                        <style>.input { border-radius: 0.375rem; border: 1px solid #D1D5DB; padding: 0.5rem 0.75rem; } .input:focus { outline: 2px solid transparent; outline-offset: 2px; box-shadow: 0 0 0 2px #335a82; }</style>
-                    `);
-                }
-            },
-
-            // =================================================================================
-            // EVENT LISTENERS & HANDLERS
-            // =================================================================================
-            attachEventListeners() {
-                document.body.addEventListener('click', e => {
-                    const target = e.target.closest('[data-action]');
-                    if (!target) return;
-                    
-                    const action = target.dataset.action;
-                    const projectId = target.dataset.projectId;
-                    const taskId = target.dataset.taskId;
-                    const riskId = target.dataset.riskId;
-                    const columnId = target.dataset.columnId;
-                    const minuteId = target.dataset.minuteId;
-
-                    switch (action) {
-                        case 'close-modal': app.modals.hide(); break;
-                        case 'view-project': app.router.navigateTo('single-project', { projectId }); break;
-                        case 'delete-project': app.modals.confirm('¿Seguro que quieres eliminar este proyecto y todos sus datos? Esta acción no se puede deshacer.', () => app.handlers.deleteProject(projectId)); break;
-                        case 'delete-task': app.modals.confirm('¿Seguro que quieres eliminar esta tarea?', () => app.handlers.deleteTask(taskId)); break;
-                        case 'delete-sprint': app.modals.confirm('¿Seguro que quieres eliminar este sprint? Las tareas volverán a estar disponibles.', () => app.handlers.deleteSprint()); break;
-                        case 'delete-column': app.modals.confirm('¿Seguro que quieres eliminar esta columna? Las tareas se moverán a la primera columna.', () => app.handlers.deleteColumn(columnId)); break;
-                        case 'delete-risk': app.modals.confirm('¿Seguro que quieres eliminar este riesgo?', () => app.handlers.deleteRisk(riskId)); break;
-                        case 'show-minute-modal': app.modals.minute(); break;
-                        case 'view-minute': app.render.minuteDetail('minute-viewer', minuteId); break;
-                        case 'edit-minute': app.render.minuteEditor('minute-viewer', minuteId); break;
-                        case 'delete-minute': app.modals.confirm('¿Seguro que quieres eliminar esta acta?', () => app.handlers.deleteMinute(minuteId)); break;
-                        case 'save-minute-content': 
-                            const content = document.getElementById('minute-content-editor').innerHTML;
-                            app.handlers.saveMinuteContent(minuteId, content);
-                            break;
-                    }
-                });
-
-                document.querySelectorAll('.nav-link').forEach(link => link.addEventListener('click', e => { e.preventDefault(); app.router.navigateTo(e.currentTarget.dataset.view); }));
-                document.getElementById('btn-show-project-modal').addEventListener('click', () => app.modals.project());
-                document.getElementById('home-projects-container').addEventListener('click', e => { if (e.target.closest('[data-action="show-project-modal"]')) app.modals.project(); });
-
-                const mainContent = document.querySelector('main');
-                mainContent.addEventListener('click', e => {
-                    const buttonId = e.target.closest('button')?.id;
-                    const tab = e.target.closest('.project-tab');
-                    
-                    if (buttonId === 'btn-show-task-modal') app.modals.task();
-                    if (buttonId === 'btn-show-risk-modal') app.modals.risk();
-                    if (buttonId === 'btn-show-add-column-modal') app.modals.addColumn();
-                    
-                    if (buttonId === 'btn-create-sprint') {
-                        const selectedIds = Array.from(document.querySelectorAll('.task-checkbox:checked')).map(cb => cb.dataset.taskId);
-                        if (selectedIds.length > 0) app.modals.sprint(selectedIds);
-                    }
-
-                    if (tab) {
-                        e.preventDefault();
-                        app.router.navigateTo('single-project', { projectId: app.currentProjectId, tab: tab.dataset.tab });
-                    }
-                });
-                
-                mainContent.addEventListener('change', e => {
-                    if (e.target.matches('.task-checkbox, #select-all-tasks')) {
-                        if (e.target.id === 'select-all-tasks') {
-                           document.querySelectorAll('.task-checkbox:not(:disabled)').forEach(cb => cb.checked = e.target.checked);
-                        }
-                        const selectedCount = document.querySelectorAll('.task-checkbox:checked').length;
-                        const btn = document.getElementById('btn-create-sprint');
-                        if (btn) {
-                            btn.disabled = selectedCount === 0;
-                            btn.classList.toggle('bg-gray-300', selectedCount === 0);
-                            btn.classList.toggle('text-gray-500', selectedCount === 0);
-                            btn.classList.toggle('cursor-not-allowed', selectedCount === 0);
-                            btn.classList.toggle('btn-save', selectedCount > 0);
-                            btn.textContent = selectedCount > 0 ? `Crear Sprint (${selectedCount})` : 'Crear Sprint';
-                        }
-                    }
-                });
-
-                document.getElementById('modal-container').addEventListener('submit', e => {
-                    e.preventDefault();
-                    const form = e.target;
-                    const data = Object.fromEntries(new FormData(form).entries());
-
-                    if (form.id === 'form-add-project') this.handlers.addProject(data);
-                    if (form.id === 'form-add-task') this.handlers.addTask(data);
-                    if (form.id === 'form-create-sprint') this.handlers.createSprint(data);
-                    if (form.id === 'form-add-column') this.handlers.addColumn(data);
-                    if (form.id === 'form-add-risk') this.handlers.addRisk(data);
-                    if (form.id === 'form-add-minute') this.handlers.addMinute(data);
-                    
-                    this.modals.hide();
-                });
-            },
-            
-            attachKanbanDDListeners() {
-                let draggedItem = null; let draggedColumn = null;
-                document.querySelectorAll('.kanban-card').forEach(card => {
-                    card.addEventListener('dragstart', (e) => { draggedItem = e.target; setTimeout(() => e.target.classList.add('dragging'), 0); });
-                    card.addEventListener('dragend', () => { draggedItem.classList.remove('dragging'); draggedItem = null; });
-                });
-                document.querySelectorAll('.kanban-cards').forEach(container => {
-                    container.addEventListener('dragover', (e) => { e.preventDefault(); container.closest('.kanban-column').classList.add('drag-over'); });
-                    container.addEventListener('dragleave', (e) => { container.closest('.kanban-column').classList.remove('drag-over'); });
-                    container.addEventListener('drop', (e) => {
-                        e.preventDefault();
-                        const columnEl = e.target.closest('.kanban-column');
-                        columnEl.classList.remove('drag-over');
-                        if (draggedItem && columnEl) {
-                           e.target.closest('.kanban-cards').appendChild(draggedItem);
-                           app.handlers.moveTaskInKanban(draggedItem.dataset.taskId, columnEl.dataset.columnId);
-                        }
-                    });
-                });
-                document.querySelectorAll('.kanban-column').forEach(col => {
-                    col.addEventListener('dragstart', e => { if (e.target.classList.contains('kanban-column')) { draggedColumn = e.target; e.dataTransfer.effectAllowed = 'move'; }});
-                    col.addEventListener('dragend', e => draggedColumn = null);
-                });
-                const board = document.getElementById('kanban-board');
-                if(!board) return;
-                board.addEventListener('dragover', e => {
-                    e.preventDefault();
-                    if (draggedColumn) {
-                        const afterElement = ((container, x) => {
-                            const draggableElements = [...container.querySelectorAll('.kanban-column:not(.dragging)')];
-                            return draggableElements.reduce((closest, child) => {
-                                const box = child.getBoundingClientRect();
-                                const offset = x - box.left - box.width / 2;
-                                if (offset < 0 && offset > closest.offset) { return { offset: offset, element: child }; } 
-                                else { return closest; }
-                            }, { offset: Number.NEGATIVE_INFINITY }).element;
-                        })(e.currentTarget, e.clientX);
-                        if (afterElement == null) { e.currentTarget.appendChild(draggedColumn); } 
-                        else { e.currentTarget.insertBefore(draggedColumn, afterElement); }
-                    }
-                });
-                board.addEventListener('drop', e => { if (draggedColumn) { app.handlers.moveKanbanColumn(); }});
-            },
-            
-            handlers: {
-                addProject(data) {
-                    const newProject = { id: `P${app.data.projects.length + 1}`, name: data.name, description: data.description, tasks: [], risks: [], sprints: [], minutes: [] };
-                    app.data.projects.push(newProject);
-                    app.db.save();
-                    app.render.projectsList();
-                },
-                deleteProject(projectId) {
-                    app.data.projects = app.data.projects.filter(p => p.id !== projectId);
-                    delete app.data.kanbanState[projectId];
-                    app.db.save();
-                    if (app.currentView === 'projects') app.render.projectsList();
-                    else app.router.navigateTo('projects');
-                },
-                addTask(data) {
-                    const project = app.get.projectById(app.currentProjectId);
-                    if (!project) return;
-                    const newTask = { id: `T${(project.tasks || []).length + 1}`, title: data.title, description: data.description || '', responsible: data.responsible, priority: data.priority, startDate: data.startDate, endDate: data.endDate, comments: data.comments || '', status: 'Por Hacer', sprintId: null };
-                    if (!project.tasks) project.tasks = [];
-                    project.tasks.push(newTask);
-                    app.db.save();
-                    app.render.singleProject();
-                },
-                deleteTask(taskId) {
-                    const project = app.get.projectById(app.currentProjectId);
-                    if (!project) return;
-                    project.tasks = project.tasks.filter(t => t.id !== taskId);
-                    Object.values(app.data.kanbanState[project.id] || {}).forEach(sprint => {
-                        Object.values(sprint.columns).forEach(col => { col.taskIds = col.taskIds.filter(id => id !== taskId); });
-                    });
-                    app.db.save();
-                    app.render.singleProject();
-                },
-                createSprint(data) {
-                    const project = app.get.projectById(app.currentProjectId);
-                    if (!project) return;
-                    const sprintNumber = (project.sprints?.length || 0) + 1;
-                    const newSprint = { id: 'sprint_' + Date.now(), name: `Sprint ${sprintNumber}`, startDate: data.startDate, endDate: data.endDate, taskIds: data.taskIds.split(',') };
-                    if (!project.sprints) project.sprints = [];
-                    project.sprints.push(newSprint);
-                    newSprint.taskIds.forEach(taskId => { const task = app.get.taskById(project.id, taskId); if (task) task.sprintId = newSprint.id; });
-                    if (!app.data.kanbanState[project.id]) app.data.kanbanState[project.id] = {};
-                    const col1 = 'col_' + Date.now() + '_1', col2 = 'col_' + Date.now() + '_2', col3 = 'col_' + Date.now() + '_3', col4 = 'col_' + Date.now() + '_4';
-                    app.data.kanbanState[project.id][newSprint.id] = {
-                        columnOrder: [col1, col2, col3, col4],
-                        columns: {
-                            [col1]: { id: col1, title: 'Por Hacer', taskIds: newSprint.taskIds },
-                            [col2]: { id: col2, title: 'En Progreso', taskIds: [] },
-                            [col3]: { id: col3, title: 'Impedimento', taskIds: [] },
-                            [col4]: { id: col4, title: 'Terminado', taskIds: [] }
-                        }
-                    };
-                    app.db.save();
-                    app.router.navigateTo('single-project', { projectId: project.id, tab: 'board' });
-                },
-                 deleteSprint() {
-                    const project = app.get.projectById(app.currentProjectId);
-                    const latestSprint = project.sprints.pop();
-                    if (!latestSprint) return;
-                    latestSprint.taskIds.forEach(taskId => { const task = app.get.taskById(project.id, taskId); if (task) task.sprintId = null; });
-                    delete app.data.kanbanState[project.id][latestSprint.id];
-                    app.db.save();
-                    app.render.singleProject();
-                },
-                addColumn(data) {
-                    const project = app.get.projectById(app.currentProjectId);
-                    const latestSprint = app.get.latestSprint(project.id);
-                    const kanban = app.get.kanbanState(project.id, latestSprint.id);
-                    const newColumnId = 'col_' + Date.now();
-                    kanban.columns[newColumnId] = { id: newColumnId, title: data.name, taskIds: [] };
-                    kanban.columnOrder.push(newColumnId);
-                    app.db.save();
-                    app.render.singleProject();
-                },
-                deleteColumn(columnId) {
-                    const project = app.get.projectById(app.currentProjectId);
-                    const latestSprint = app.get.latestSprint(project.id);
-                    const kanban = app.get.kanbanState(project.id, latestSprint.id);
-                    const tasksToMove = kanban.columns[columnId].taskIds;
-                    const firstColumnId = kanban.columnOrder[0];
-                    kanban.columns[firstColumnId].taskIds.push(...tasksToMove);
-                    delete kanban.columns[columnId];
-                    kanban.columnOrder = kanban.columnOrder.filter(id => id !== columnId);
-                    app.db.save();
-                    app.render.singleProject();
-                },
-                addRisk(data) {
-                    const project = app.get.projectById(app.currentProjectId);
-                    if (!project) return;
-                    const factor = parseInt(data.impact) * parseInt(data.probability);
-                    const newRisk = { id: `R${(project.risks || []).length + 1}`, name: data.name, impact: parseInt(data.impact), probability: parseInt(data.probability), description: data.description, mitigationPlan: data.mitigationPlan, strategy: data.strategy, status: data.status, factor: factor, appetite: app.helpers.calculateRiskAppetite(factor) };
-                    if (!project.risks) project.risks = [];
-                    project.risks.push(newRisk);
-                    app.db.save();
-                    app.render.singleProject();
-                },
-                deleteRisk(riskId) {
-                    const project = app.get.projectById(app.currentProjectId);
-                    if (!project) return;
-                    project.risks = project.risks.filter(r => r.id !== riskId);
-                    app.db.save();
-                    app.render.singleProject();
-                },
-                 addMinute(data) {
-                    const project = app.get.projectById(app.currentProjectId);
-                    if (!project) return;
-                    const newMinute = { id: 'minute_' + Date.now(), title: data.title, date: data.date, content: '' };
-                    if (!project.minutes) project.minutes = [];
-                    project.minutes.push(newMinute);
-                    app.db.save();
-                    app.render.projectMinutes(document.getElementById('project-content'), project);
-                    app.render.minuteEditor('minute-viewer', newMinute.id);
-                },
-                saveMinuteContent(minuteId, content) {
-                    const minute = app.get.minuteById(app.currentProjectId, minuteId);
-                    if (!minute) return;
-                    minute.content = content;
-                    app.db.save();
-                    app.render.minuteDetail('minute-viewer', minuteId);
-                },
-                deleteMinute(minuteId) {
-                    const project = app.get.projectById(app.currentProjectId);
-                    if (!project || !project.minutes) return;
-                    project.minutes = project.minutes.filter(m => m.id !== minuteId);
-                    app.db.save();
-                    app.render.projectMinutes(document.getElementById('project-content'), project);
-                },
-                moveTaskInKanban(taskId, newColumnId) {
-                    const project = app.get.projectById(app.currentProjectId);
-                    const latestSprint = app.get.latestSprint(project.id);
-                    const kanban = app.get.kanbanState(project.id, latestSprint.id);
-                    for (const colId in kanban.columns) { const index = kanban.columns[colId].taskIds.indexOf(taskId); if (index > -1) { kanban.columns[colId].taskIds.splice(index, 1); break; } }
-                    kanban.columns[newColumnId].taskIds.push(taskId);
-                    const task = app.get.taskById(project.id, taskId);
-                    if (task) { task.status = kanban.columns[newColumnId].title; }
-                    app.db.save();
-                },
-                moveKanbanColumn() {
-                     const project = app.get.projectById(app.currentProjectId);
-                     const latestSprint = app.get.latestSprint(project.id);
-                     const kanban = app.get.kanbanState(project.id, latestSprint.id);
-                     kanban.columnOrder = Array.from(document.querySelectorAll('.kanban-column')).map(c => c.dataset.columnId);
-                     app.db.save();
-                }
-            },
-            
-            get: {
-                projectById(id) { return app.data.projects.find(p => p.id === id); },
-                taskById(projectId, taskId) { const p = this.projectById(projectId); return p ? (p.tasks || []).find(t => t.id === taskId) : null; },
-                minuteById(projectId, minuteId) { const p = this.projectById(projectId); return p ? (p.minutes || []).find(m => m.id === minuteId) : null; },
-                kanbanState(projectId, sprintId) { return app.data.kanbanState[projectId]?.[sprintId]; },
-                latestSprint(projectId) { const p = this.projectById(projectId); return (p && p.sprints && p.sprints.length > 0) ? p.sprints[p.sprints.length - 1] : null; }
-            },
-            
-            helpers: {
-                formatDate(dateString) { return new Date(dateString + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric'}); },
-                calculateRiskAppetite(factor) {
-                    if (factor <= 4) return { level: 'Bajo', color: '#29aa6c', textColor: '#fff' };
-                    if (factor <= 8) return { level: 'Moderado', color: '#ffc043', textColor: '#333' };
-                    if (factor <= 12) return { level: 'Alto', color: '#f27649', textColor: '#fff' };
-                    return { level: 'Extremo', color: '#eb3434', textColor: '#fff' };
-                },
-                daysBetween(date1, date2) {
-                    return Math.round((date2 - date1) / (1000 * 60 * 60 * 24));
-                }
-            },
-            
-            updateGreeting() {
-                 const container = document.getElementById('greeting-container');
-                 const now = new Date();
-                 const hours = now.getHours();
-                 let greeting = (hours < 12) ? 'Buenos días' : (hours < 18) ? 'Buenas tardes' : 'Buenas noches';
-                 container.innerHTML = `
-                    <p class="text-lg text-gray-600">${now.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                    <p class="text-sm text-gray-500">${now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit'})}</p>
-                    <h1 class="text-4xl font-bold text-title mt-2">${greeting}, Lorena</h1>`;
-            }
-        };
-
-        app.init();
-    });
-    </script>
+    <script src="app.js"></script>
+    <script src="app-extensions.js"></script>
+    <script src="demo-data.js"></script>
 </body>
 </html>
-

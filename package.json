@@ -1,0 +1,29 @@
+{
+  "name": "project-scope",
+  "version": "1.0.0",
+  "description": "Aplicación web de gestión de proyectos con interfaz moderna",
+  "main": "index.html",
+  "scripts": {
+    "start": "python -m http.server 8000",
+    "serve": "npx serve ."
+  },
+  "keywords": [
+    "project-management",
+    "kanban",
+    "task-management",
+    "javascript",
+    "html",
+    "css",
+    "tailwindcss"
+  ],
+  "author": "Lorena",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tu-usuario/project-scope.git"
+  },
+  "homepage": "https://tu-usuario.github.io/project-scope/",
+  "devDependencies": {
+    "serve": "^14.2.0"
+  }
+}
