@@ -4,8 +4,8 @@
  */
 class ProjectScopeAPI {
     constructor() {
-        // Production API URL - Change this to your Hostinger API URL
-        this.baseURL = 'https://api.tudominio.com/api'; // ← Cambiar por tu URL de Hostinger
+        // Production API URL - Change this to your Vercel API URL
+        this.baseURL = 'https://tuproyecto.vercel.app/api'; // ← Cambiar por tu URL de Vercel
         this.currentProject = null;
         this.token = localStorage.getItem('projectScopeToken');
         this.user = null;

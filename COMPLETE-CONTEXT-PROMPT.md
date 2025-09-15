@@ -9,7 +9,7 @@ Soy un desarrollador que ha creado una aplicación web completa de gestión de p
 - **Tecnologías**: HTML, CSS (TailwindCSS), JavaScript (Frontend) + Node.js, Express, MySQL (Backend)
 - **Arquitectura**: Frontend estático + Backend API + Base de datos MySQL
 - **Seguridad**: Autenticación JWT con usuario único
-- **Despliegue**: GitHub Pages (Frontend) + Hostinger (Backend + MySQL)
+- **Despliegue**: GitHub Pages (Frontend) + Vercel (Backend) + Railway (PostgreSQL)
 
 ## 🏗️ **Arquitectura Implementada**
 
@@ -23,13 +23,23 @@ Soy un desarrollador que ha creado una aplicación web completa de gestión de p
 └─────────────────┘
 ```
 
-### **Backend (Hostinger)**
+### **Backend (Vercel)**
 ```
 ┌─────────────────┐
-│   Hostinger     │
-│   (MySQL DB)    │
+│   Vercel        │
+│   (Node.js API) │
+│   Backend API   │
+│   Gratis        │
+└─────────────────┘
+```
+
+### **Base de Datos (Railway)**
+```
+┌─────────────────┐
+│   Railway       │
+│   (PostgreSQL)  │
 │   Base de datos │
-│   Remota        │
+│   Gratis        │
 └─────────────────┘
 ```
 
@@ -83,21 +93,19 @@ Project_Scope/
 │   ├── api-client.js
 │   ├── demo-data.js
 │   └── README.md
-├── hostinger-backend/            # Archivos para Hostinger
-│   ├── server.js
+├── vercel-backend/               # Archivos para Vercel
+│   ├── api/
+│   │   └── index.js             # API principal para Vercel
 │   ├── package.json
-│   ├── env.example
-│   ├── config/
-│   ├── middleware/
-│   ├── routes/
-│   ├── scripts/
+│   ├── vercel.json              # Configuración de Vercel
+│   ├── database-schema.sql      # Esquema PostgreSQL
 │   └── README.md
 └── Documentación/
     ├── README-BACKEND.md
     ├── MIGRATION-GUIDE.md
     ├── SECURITY-MODULE.md
     ├── SECURITY-IMPLEMENTATION-SUMMARY.md
-    ├── HOSTINGER-GITHUB-SETUP.md
+    ├── FREE-HOSTING-GUIDE.md
     └── DEPLOYMENT-GUIDE.md
 ```
 
@@ -185,7 +193,7 @@ Project_Scope/
 - **Fechas**: Inicio y fin de tareas
 - **Progreso**: Barras de progreso visual
 
-## 🗄️ **Base de Datos MySQL**
+## 🗄️ **Base de Datos PostgreSQL**
 
 ### **Tablas Principales**
 ```sql
@@ -380,14 +388,16 @@ git add .
 git commit -m "Deploy frontend"
 git push origin main
 
-# Backend (Hostinger)
-cd hostinger-backend
-mv env.example .env
-# Editar .env con credenciales de Hostinger
-# Subir archivos via FTP/SFTP
+# Backend (Vercel)
+cd vercel-backend
 npm install
-npm run init-db
-npm start
+vercel login
+vercel
+
+# Base de Datos (Railway)
+# 1. Crear proyecto en railway.app
+# 2. Provisionar PostgreSQL
+# 3. Configurar variables de entorno en Vercel
 ```
 
 ## 📊 **Flujo de Datos**
@@ -395,9 +405,9 @@ npm start
 1. **Usuario accede**: Frontend desde GitHub Pages
 2. **Verificación**: Check de autenticación automático
 3. **Login**: Si no está autenticado, modal de login
-4. **API calls**: Requests a backend en Hostinger
+4. **API calls**: Requests a backend en Vercel
 5. **Procesamiento**: Backend valida y procesa requests
-6. **Base de datos**: Operaciones CRUD en MySQL
+6. **Base de datos**: Operaciones CRUD en PostgreSQL (Railway)
 7. **Respuesta**: Datos vuelven al frontend
 8. **Renderizado**: UI se actualiza con nuevos datos
 
@@ -447,11 +457,12 @@ npm start
 - **Rate Limiting**: Protección contra ataques
 
 ### **Base de Datos**
-- **MySQL**: Base de datos relacional
-- **UTF8MB4**: Codificación completa
+- **PostgreSQL**: Base de datos relacional avanzada
+- **UTF8**: Codificación completa
 - **Índices**: Optimización de consultas
 - **Constraints**: Integridad referencial
 - **Transacciones**: Operaciones atómicas
+- **Railway**: Hosting gratuito con backup automático
 
 ## 📝 **Notas Importantes**
 
@@ -486,7 +497,7 @@ npm start
 
 ## 🚀 **Próximos Pasos Sugeridos**
 
-1. **Desplegar en producción**: GitHub Pages + Hostinger
+1. **Desplegar en producción**: GitHub Pages + Vercel + Railway
 2. **Configurar dominio personalizado**: Si es necesario
 3. **Implementar backups**: De la base de datos
 4. **Monitoreo**: Del rendimiento del backend
