@@ -230,16 +230,16 @@ app.post('/api/projects', authenticateToken, async (req, res) => {
 
         // Crear columnas por defecto
         const defaultColumns = [
-            [id + '_todo', id, 'Por Hacer', 0, true],
-            [id + '_progress', id, 'En Progreso', 1, true],
-            [id + '_blocked', id, 'Impedimento', 2, true],
-            [id + '_done', id, 'Terminado', 3, true]
+            [id, 'Por Hacer', 0, true],
+            [id, 'En Progreso', 1, true],
+            [id, 'Impedimento', 2, true],
+            [id, 'Terminado', 3, true]
         ];
 
-        for (const [columnId, projectId, columnName, orderIndex, isDefault] of defaultColumns) {
+        for (const [projectId, columnName, orderIndex, isDefault] of defaultColumns) {
             await pool.query(
-                'INSERT INTO kanban_columns (id, project_id, name, order_index, is_default) VALUES ($1, $2, $3, $4, $5)',
-                [columnId, projectId, columnName, orderIndex, isDefault]
+                'INSERT INTO kanban_columns (project_id, name, order_index, is_default) VALUES ($1, $2, $3, $4)',
+                [projectId, columnName, orderIndex, isDefault]
             );
         }
 
