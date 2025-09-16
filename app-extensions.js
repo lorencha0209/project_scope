@@ -1,8 +1,23 @@
 // Project Scope - Additional Functions
 // Extending the ProjectScopeApp class with remaining functionality
 
-// Add these methods to the ProjectScopeApp class
-Object.assign(ProjectScopeApp.prototype, {
+// Wait for ProjectScopeApp to be available
+function initializeExtensions() {
+    console.log('Attempting to initialize extensions...');
+    console.log('ProjectScopeApp available:', typeof ProjectScopeApp !== 'undefined');
+    console.log('window.ProjectScopeApp available:', typeof window.ProjectScopeApp !== 'undefined');
+    
+    if (typeof ProjectScopeApp === 'undefined' && typeof window.ProjectScopeApp === 'undefined') {
+        console.error('ProjectScopeApp is not defined. Retrying in 100ms...');
+        setTimeout(initializeExtensions, 100);
+        return;
+    }
+    
+    // Use window.ProjectScopeApp if ProjectScopeApp is not directly available
+    const ProjectScopeAppClass = ProjectScopeApp || window.ProjectScopeApp;
+
+    // Add these methods to the ProjectScopeApp class
+    Object.assign(ProjectScopeAppClass.prototype, {
     
     // Board Tab Functions
     loadBoardTab() {
@@ -874,4 +889,16 @@ style.textContent = `
         min-height: 50px;
     }
 `;
-document.head.appendChild(style);
+
+    // Add CSS styles to the page
+    document.head.appendChild(style);
+
+    console.log('Project Scope Extensions loaded successfully');
+}
+
+// Initialize extensions when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeExtensions);
+} else {
+    initializeExtensions();
+}
