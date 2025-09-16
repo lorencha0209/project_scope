@@ -20,7 +20,7 @@
 ### **✅ Frontend (GitHub Pages)**
 - **Costo**: Gratis
 - **Archivos**: HTML, CSS, JavaScript
-- **URL**: `https://tuusuario.github.io/project-scope`
+- **URL**: `https://lorencha0209.github.io/project-scope`
 - **Funcionalidad**: Interfaz de usuario completa
 
 ### **✅ Backend (Hostinger)**
@@ -83,7 +83,7 @@ PORT=3000
 NODE_ENV=production
 
 # CORS Configuration (GitHub Pages)
-CORS_ORIGIN=https://tuusuario.github.io
+CORS_ORIGIN=https://lorencha0209.github.io
 
 # JWT Configuration
 JWT_SECRET=tu_clave_secreta_muy_segura
@@ -149,7 +149,7 @@ npm start
 
 ### **Frontend (GitHub Pages)**
 ```
-https://tuusuario.github.io/project-scope
+https://lorencha0209.github.io/project-scope
 ```
 
 ### **Backend (Hostinger)**
@@ -172,7 +172,7 @@ Base de datos: project_scope
 ```javascript
 // En server.js
 app.use(cors({
-    origin: 'https://tuusuario.github.io', // Tu GitHub Pages URL
+    origin: 'https://lorencha0209.github.io', // Tu GitHub Pages URL
     credentials: true
 }));
 ```
@@ -181,13 +181,13 @@ app.use(cors({
 ```env
 # Producción
 NODE_ENV=production
-CORS_ORIGIN=https://tuusuario.github.io
+CORS_ORIGIN=https://lorencha0209.github.io
 JWT_SECRET=clave_super_secreta_para_produccion
 ```
 
 ## 📊 **Flujo de Datos**
 
-1. **Usuario accede**: `https://tuusuario.github.io/project-scope`
+1. **Usuario accede**: `https://lorencha0209.github.io/project-scope`
 2. **Frontend carga**: HTML, CSS, JS desde GitHub Pages
 3. **API calls**: Van a `https://api.tudominio.com/api`
 4. **Backend procesa**: Requests en Hostinger

@@ -45,7 +45,7 @@ Te he preparado una solución **completamente gratuita** usando servicios confia
   - ✅ Deploy automático
   - ✅ SSL gratuito
   - ✅ CDN global
-- **URL**: `https://tuusuario.github.io/project-scope`
+- **URL**: `https://lorencha0209.github.io/project-scope`
 
 ## 🚀 **Configuración Paso a Paso**
 
@@ -77,7 +77,7 @@ En Vercel Dashboard → Settings → Environment Variables:
 DATABASE_URL=postgresql://user:pass@host:port/db
 JWT_SECRET=project-scope-secret-key-2024-change-in-production
 JWT_EXPIRY=24h
-CORS_ORIGIN=https://tuusuario.github.io
+CORS_ORIGIN=https://lorencha0209.github.io
 ```
 
 #### **2.3 Deploy automático**
@@ -169,7 +169,7 @@ git push origin main
 
 ### **Frontend (GitHub Pages)**
 ```
-https://tuusuario.github.io/project-scope
+https://lorencha0209.github.io/project-scope
 ```
 
 ### **Backend (Vercel)**
@@ -188,7 +188,7 @@ postgresql://user:pass@host:port/db
 ```javascript
 // En api/index.js
 app.use(cors({
-    origin: process.env.CORS_ORIGIN || 'https://tuusuario.github.io',
+    origin: process.env.CORS_ORIGIN || 'https://lorencha0209.github.io',
     credentials: true
 }));
 ```
