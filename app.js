@@ -13,6 +13,18 @@ class ProjectScopeApp {
         this.init();
     }
 
+    // Generate ID with prefix and consecutive number
+    generateId(prefix, items) {
+        const maxNumber = items.reduce((max, item) => {
+            if (item.id && item.id.startsWith(prefix)) {
+                const number = parseInt(item.id.substring(prefix.length));
+                return Math.max(max, number);
+            }
+            return max;
+        }, 0);
+        return `${prefix}${maxNumber + 1}`;
+    }
+
     async init() {
         this.setupEventListeners();
         this.updateDateTime();
@@ -1057,7 +1069,7 @@ class ProjectScopeApp {
         const description = document.getElementById('project-description').value;
         
         const project = {
-            id: Date.now().toString(),
+            id: this.generateId('P', this.data.projects),
             name,
             description,
             createdAt: new Date().toISOString()
@@ -1163,7 +1175,7 @@ class ProjectScopeApp {
         const sprintNumber = this.data.sprints.filter(s => s.projectId === this.currentProject).length + 1;
         
         const sprint = {
-            id: Date.now().toString(),
+            id: this.generateId('S', this.data.sprints),
             projectId: this.currentProject,
             name: `Sprint ${sprintNumber}`,
             startDate,
@@ -1183,7 +1195,7 @@ class ProjectScopeApp {
         const maxOrder = Math.max(...this.data.columns.map(c => c.order));
         
         const column = {
-            id: Date.now().toString(),
+            id: this.generateId('C', this.data.columns),
             name,
             order: maxOrder + 1
         };
@@ -1248,7 +1260,7 @@ class ProjectScopeApp {
         const date = document.getElementById('minutes-date').value;
         
         const minutes = {
-            id: Date.now().toString(),
+            id: this.generateId('M', this.data.meetingMinutes),
             projectId: this.currentProject,
             title,
             date,
