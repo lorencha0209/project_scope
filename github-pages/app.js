@@ -49,6 +49,7 @@ class ProjectScopeApp {
         // Update time every minute
         setInterval(() => {
             this.updateDateTime();
+        }, 60000);
     }
 
     // Authentication Methods
@@ -1322,6 +1323,10 @@ class ProjectScopeApp {
     }
 }
 
+// Make ProjectScopeApp globally available
+window.ProjectScopeApp = ProjectScopeApp;
+console.log('ProjectScopeApp class defined and made globally available');
+
 // Global functions for HTML onclick events
 function showView(viewName) {
     app.showView(viewName);
@@ -1404,7 +1409,14 @@ function     closeCreateMinutesModal() {
     }
 
 // Initialize the application
-let app;
+let app = new ProjectScopeApp();
+console.log('ProjectScopeApp instance created');
+
+// Make app globally available
+window.app = app;
+console.log('App instance made globally available');
+
 document.addEventListener('DOMContentLoaded', () => {
-    app = new ProjectScopeApp();
+    // App is already initialized
+    console.log('Project Scope App initialized');
 });
