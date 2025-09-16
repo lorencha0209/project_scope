@@ -4,7 +4,7 @@
  */
 class ProjectScopeAPI {
     constructor() {
-        this.baseURL = 'http://localhost:3000/api';
+        this.baseURL = 'https://project-scope-backend.vercel.app/api';
         this.currentProject = null;
         this.token = localStorage.getItem('projectScopeToken');
         this.user = null;

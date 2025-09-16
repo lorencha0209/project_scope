@@ -86,13 +86,6 @@ Project_Scope/
 │   ├── database-schema.sql       # Esquema de base de datos
 │   ├── init-database.js          # Inicialización automática
 │   └── generate-password-hash.js # Generador de hash de contraseñas
-├── github-pages/                 # Archivos para GitHub Pages
-│   ├── index.html
-│   ├── app.js
-│   ├── app-extensions.js
-│   ├── api-client.js
-│   ├── demo-data.js
-│   └── README.md
 ├── vercel-backend/               # Archivos para Vercel
 │   ├── api/
 │   │   └── index.js             # API principal para Vercel
@@ -381,12 +374,14 @@ npm start
 ### **Despliegue en Producción**
 ```bash
 # Frontend (GitHub Pages)
-git clone https://github.com/tuusuario/project-scope.git
-cd project-scope
-cp ../Project_Scope/github-pages/* .
-git add .
-git commit -m "Deploy frontend"
-git push origin main
+# 1. Crear repositorio en GitHub
+# 2. Subir archivos principales directamente a la raíz:
+#    - index.html
+#    - app.js
+#    - app-extensions.js
+#    - api-client.js
+#    - demo-data.js
+# 3. Habilitar GitHub Pages en Settings → Pages
 
 # Backend (Vercel)
 cd vercel-backend
