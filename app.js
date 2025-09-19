@@ -1193,8 +1193,25 @@ class ProjectScopeApp {
             createdAt: new Date().toISOString()
         };
         
-        this.data.sprints.push(sprint);
-        this.saveData();
+        if (this.useAPI) {
+            try {
+                await window.api.createSprint(sprint);
+                this.data.sprints.push(sprint);
+                
+                // Add tasks to sprint if any were selected
+                for (const taskId of selectedTasks) {
+                    await window.api.addTaskToSprint(taskId, sprint.id);
+                }
+            } catch (error) {
+                console.error('Failed to create sprint:', error);
+                alert('Error al crear el sprint: ' + error.message);
+                return;
+            }
+        } else {
+            this.data.sprints.push(sprint);
+            this.saveData();
+        }
+        
         this.closeCreateSprintModal();
         this.loadBoardTab();
     }
