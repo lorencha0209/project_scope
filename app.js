@@ -505,22 +505,17 @@ class ProjectScopeApp {
 
     loadTasksTab() {
         const container = document.getElementById('project-tab-content');
-        const projectTasks = this.data.tasks.filter(task => (task.projectId || task.project_id) === this.currentProject);
         
-        // Separate tasks that are already in sprints
-        const tasksInSprints = new Set();
-        if (this.data.sprints && Array.isArray(this.data.sprints)) {
-            this.data.sprints.forEach(sprint => {
-                if ((sprint.projectId || sprint.project_id) === this.currentProject) {
-                    if (sprint.taskIds && Array.isArray(sprint.taskIds)) {
-                        sprint.taskIds.forEach(taskId => tasksInSprints.add(taskId));
-                    }
-                }
-            });
+        // Ensure data is initialized
+        if (!this.data) {
+            this.data = { projects: [], tasks: [], sprints: [], risks: [], meetingMinutes: [], columns: [] };
         }
         
-        const availableTasks = projectTasks.filter(task => !tasksInSprints.has(task.id));
-        const sprintTasks = projectTasks.filter(task => tasksInSprints.has(task.id));
+        const projectTasks = (this.data.tasks || []).filter(task => (task.projectId || task.project_id) === this.currentProject);
+        
+        // Separate tasks that are already in sprints
+        const availableTasks = projectTasks.filter(task => !task.sprintIds || task.sprintIds.length === 0);
+        const sprintTasks = projectTasks.filter(task => task.sprintIds && task.sprintIds.length > 0);
         
         container.innerHTML = `
             <div class="mb-6">
@@ -1204,13 +1199,19 @@ class ProjectScopeApp {
         
         if (this.useAPI) {
             try {
-                await window.api.createSprint(sprint);
-                (this.data.sprints || []).push(sprint);
+                // Create sprint without taskIds for backend
+                const sprintForBackend = { ...sprint };
+                delete sprintForBackend.taskIds;
+                
+                await window.api.createSprint(sprintForBackend);
                 
                 // Add tasks to sprint if any were selected
                 for (const taskId of selectedTasks) {
                     await window.api.addTaskToSprint(taskId, sprint.id);
                 }
+                
+                // Add sprint to local data with taskIds
+                (this.data.sprints || []).push(sprint);
             } catch (error) {
                 console.error('Failed to create sprint:', error);
                 alert('Error al crear el sprint: ' + error.message);
