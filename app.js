@@ -404,7 +404,7 @@ class ProjectScopeApp {
     loadHomeTasks() {
         const container = document.getElementById('home-tasks-list');
         const inProgressTasks = this.data.tasks.filter(task => 
-            task.status === 'En Progreso' && task.projectId === this.currentProject
+            task.status === 'in_progress' && (task.projectId || task.project_id) === this.currentProject
         );
         
         container.innerHTML = '';
@@ -460,7 +460,7 @@ class ProjectScopeApp {
     }
 
     getProjectTaskCount(projectId) {
-        return this.data.tasks.filter(task => task.projectId === projectId).length;
+        return this.data.tasks.filter(task => (task.projectId || task.project_id) === projectId).length;
     }
 
     // Project Management
@@ -491,12 +491,12 @@ class ProjectScopeApp {
 
     loadTasksTab() {
         const container = document.getElementById('project-tab-content');
-        const projectTasks = this.data.tasks.filter(task => task.projectId === this.currentProject);
+        const projectTasks = this.data.tasks.filter(task => (task.projectId || task.project_id) === this.currentProject);
         
         // Separate tasks that are already in sprints
         const tasksInSprints = new Set();
         this.data.sprints.forEach(sprint => {
-            if (sprint.projectId === this.currentProject) {
+            if ((sprint.projectId || sprint.project_id) === this.currentProject) {
                 sprint.taskIds.forEach(taskId => tasksInSprints.add(taskId));
             }
         });
@@ -646,7 +646,7 @@ class ProjectScopeApp {
         
         // Load available sprints
         const sprintSelect = document.getElementById('task-sprint');
-        const currentSprints = this.data.sprints.filter(sprint => sprint.projectId === this.currentProject);
+        const currentSprints = this.data.sprints.filter(sprint => (sprint.projectId || sprint.project_id) === this.currentProject);
         
         // Clear existing options except the first one
         sprintSelect.innerHTML = '<option value="">No agregar a sprint</option>';
@@ -1172,14 +1172,14 @@ class ProjectScopeApp {
             return;
         }
         
-        const sprintNumber = this.data.sprints.filter(s => s.projectId === this.currentProject).length + 1;
+        const sprintNumber = this.data.sprints.filter(s => (s.projectId || s.project_id) === this.currentProject).length + 1;
         
         const sprint = {
             id: this.generateId('S', this.data.sprints),
-            projectId: this.currentProject,
+            project_id: this.currentProject,
             name: `Sprint ${sprintNumber}`,
-            startDate,
-            endDate,
+            start_date: startDate,
+            end_date: endDate,
             taskIds: selectedTasks,
             createdAt: new Date().toISOString()
         };
