@@ -673,43 +673,106 @@ function initializeExtensions() {
         
         alert('Riesgo actualizado exitosamente');
     },
-    
-    // Meeting Minutes Tab Functions
-    loadMinutesTab() {
+
+    // Sprints Tab Functions
+    loadSprintsTab() {
         const container = document.getElementById('project-tab-content');
-        const projectMinutes = this.data.meetingMinutes
-            .filter(minutes => minutes.projectId === this.currentProject)
-            .sort((a, b) => new Date(b.date) - new Date(a.date));
+        const projectSprints = this.data.sprints.filter(sprint => (sprint.projectId || sprint.project_id) === this.currentProject);
         
         container.innerHTML = `
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Minutes List -->
-                <div class="lg:col-span-1">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-semibold title-color">Actas del Proyecto</h3>
-                        <button onclick="app.openCreateMinutesModal()" class="btn-primary text-white px-4 py-2 rounded-lg hover:bg-opacity-90">
-                            <i class="fas fa-plus mr-2"></i>Nueva Acta
-                        </button>
-                    </div>
-                    
-                    <div class="space-y-2 max-h-96 overflow-y-auto">
-                        ${projectMinutes.map(minutes => `
-                            <div class="bg-white border border-gray-200 rounded-lg p-3 cursor-pointer hover:shadow-md transition-shadow" onclick="app.loadMinutesContent('${minutes.id}')">
-                                <h4 class="font-medium text-gray-900 mb-1">${minutes.title}</h4>
-                                <p class="text-sm text-gray-600">${new Date(minutes.date).toLocaleDateString('es-ES')}</p>
-                            </div>
-                        `).join('')}
-                    </div>
+            <div class="mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold title-color">Sprints del Proyecto</h3>
+                    <button onclick="app.openCreateSprintModal()" class="btn-primary text-white px-4 py-2 rounded-lg hover:bg-opacity-90">
+                        <i class="fas fa-plus mr-2"></i>Crear Sprint
+                    </button>
                 </div>
                 
-                <!-- Minutes Content -->
-                <div class="lg:col-span-2">
-                    <div id="minutes-content" class="bg-white rounded-lg shadow p-6">
-                        <div class="text-center py-12 text-gray-500">
-                            <i class="fas fa-file-alt text-4xl mb-4"></i>
-                            <p>Selecciona una acta para ver su contenido</p>
-                        </div>
-                    </div>
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Inicio</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Fin</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tareas</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            ${projectSprints.length === 0 ? 
+                                '<tr><td colspan="7" class="text-center text-gray-500 py-4">No hay sprints creados</td></tr>' :
+                                projectSprints.map(sprint => `
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${sprint.id}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${sprint.name}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${sprint.start_date || sprint.startDate}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${sprint.end_date || sprint.endDate}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${sprint.status === 'active' ? 'bg-green-100 text-green-800' : sprint.status === 'completed' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}">
+                                                ${sprint.status === 'active' ? 'Activo' : sprint.status === 'completed' ? 'Completado' : 'Planificación'}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${sprint.taskIds ? sprint.taskIds.length : 0}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <button onclick="app.editSprint('${sprint.id}')" class="text-indigo-600 hover:text-indigo-900 mr-3">Editar</button>
+                                            <button onclick="app.deleteSprint('${sprint.id}')" class="text-red-600 hover:text-red-900">Eliminar</button>
+                                        </td>
+                                    </tr>
+                                `).join('')
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    },
+
+    // Minutes Tab Functions
+    loadMinutesTab() {
+        const container = document.getElementById('project-tab-content');
+        const projectMinutes = this.data.meetingMinutes.filter(minutes => (minutes.projectId || minutes.project_id) === this.currentProject);
+        
+        container.innerHTML = `
+            <div class="mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold title-color">Actas del Proyecto</h3>
+                    <button onclick="app.openCreateMinutesModal()" class="btn-primary text-white px-4 py-2 rounded-lg hover:bg-opacity-90">
+                        <i class="fas fa-plus mr-2"></i>Crear Acta
+                    </button>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Título</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Creado</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            ${projectMinutes.length === 0 ? 
+                                '<tr><td colspan="5" class="text-center text-gray-500 py-4">No hay actas creadas</td></tr>' :
+                                projectMinutes.map(minutes => `
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${minutes.id}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${minutes.title}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${minutes.date || minutes.meeting_date}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${new Date(minutes.createdAt).toLocaleDateString()}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <button onclick="app.editMinutes('${minutes.id}')" class="text-indigo-600 hover:text-indigo-900 mr-3">Editar</button>
+                                            <button onclick="app.deleteMinutes('${minutes.id}')" class="text-red-600 hover:text-red-900">Eliminar</button>
+                                        </td>
+                                    </tr>
+                                `).join('')
+                            }
+                        </tbody>
+                    </table>
                 </div>
             </div>
         `;
