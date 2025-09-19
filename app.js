@@ -227,6 +227,11 @@ class ProjectScopeApp {
 
     async loadProjectDataFromAPI(projectId) {
         try {
+            // Ensure data object is initialized
+            if (!this.data) {
+                this.data = { projects: [], tasks: [], sprints: [], risks: [], meetingMinutes: [], columns: [] };
+            }
+
             const [tasks, sprints, risks, minutes, columns] = await Promise.all([
                 window.api.getTasks(projectId),
                 window.api.getSprints(projectId),
@@ -242,7 +247,7 @@ class ProjectScopeApp {
             this.data.meetingMinutes = minutes || [];
             this.data.columns = columns || [];
 
-            console.log('📊 Project data loaded from API for project:', projectId);
+            console.log('📊 Project data loaded from API for project:', projectId, this.data);
         } catch (error) {
             console.error('Failed to load project data from API:', error);
         }
@@ -504,11 +509,15 @@ class ProjectScopeApp {
         
         // Separate tasks that are already in sprints
         const tasksInSprints = new Set();
-        this.data.sprints.forEach(sprint => {
-            if ((sprint.projectId || sprint.project_id) === this.currentProject) {
-                sprint.taskIds.forEach(taskId => tasksInSprints.add(taskId));
-            }
-        });
+        if (this.data.sprints && Array.isArray(this.data.sprints)) {
+            this.data.sprints.forEach(sprint => {
+                if ((sprint.projectId || sprint.project_id) === this.currentProject) {
+                    if (sprint.taskIds && Array.isArray(sprint.taskIds)) {
+                        sprint.taskIds.forEach(taskId => tasksInSprints.add(taskId));
+                    }
+                }
+            });
+        }
         
         const availableTasks = projectTasks.filter(task => !tasksInSprints.has(task.id));
         const sprintTasks = projectTasks.filter(task => tasksInSprints.has(task.id));
@@ -655,7 +664,7 @@ class ProjectScopeApp {
         
         // Load available sprints
         const sprintSelect = document.getElementById('task-sprint');
-        const currentSprints = this.data.sprints.filter(sprint => (sprint.projectId || sprint.project_id) === this.currentProject);
+        const currentSprints = (this.data.sprints || []).filter(sprint => (sprint.projectId || sprint.project_id) === this.currentProject);
         
         // Clear existing options except the first one
         sprintSelect.innerHTML = '<option value="">No agregar a sprint</option>';
@@ -1181,10 +1190,10 @@ class ProjectScopeApp {
             return;
         }
         
-        const sprintNumber = this.data.sprints.filter(s => (s.projectId || s.project_id) === this.currentProject).length + 1;
+        const sprintNumber = (this.data.sprints || []).filter(s => (s.projectId || s.project_id) === this.currentProject).length + 1;
         
         const sprint = {
-            id: await this.generateId('S', this.data.sprints, this.currentProject),
+            id: await this.generateId('S', this.data.sprints || [], this.currentProject),
             project_id: this.currentProject,
             name: `Sprint ${sprintNumber}`,
             start_date: startDate,
@@ -1196,7 +1205,7 @@ class ProjectScopeApp {
         if (this.useAPI) {
             try {
                 await window.api.createSprint(sprint);
-                this.data.sprints.push(sprint);
+                (this.data.sprints || []).push(sprint);
                 
                 // Add tasks to sprint if any were selected
                 for (const taskId of selectedTasks) {
@@ -1208,7 +1217,7 @@ class ProjectScopeApp {
                 return;
             }
         } else {
-            this.data.sprints.push(sprint);
+            (this.data.sprints || []).push(sprint);
             this.saveData();
         }
         
