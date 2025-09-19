@@ -14,7 +14,16 @@ class ProjectScopeApp {
     }
 
     // Generate ID with prefix and consecutive number
-    generateId(prefix, items) {
+    async generateId(prefix, items, projectId = null) {
+        if (this.useAPI && window.api) {
+            try {
+                return await window.api.generateId(prefix, projectId);
+            } catch (error) {
+                console.warn('Failed to generate ID from API, falling back to local generation:', error);
+            }
+        }
+        
+        // Fallback to local generation
         const maxNumber = items.reduce((max, item) => {
             if (item.id && item.id.startsWith(prefix)) {
                 const number = parseInt(item.id.substring(prefix.length));
@@ -1069,7 +1078,7 @@ class ProjectScopeApp {
         const description = document.getElementById('project-description').value;
         
         const project = {
-            id: this.generateId('P', this.data.projects),
+            id: await this.generateId('P', this.data.projects),
             name,
             description,
             createdAt: new Date().toISOString()
@@ -1162,7 +1171,7 @@ class ProjectScopeApp {
         this.loadTasksTab();
     }
 
-    createSprint() {
+    async createSprint() {
         const startDate = document.getElementById('sprint-start-date').value;
         const endDate = document.getElementById('sprint-end-date').value;
         const selectedTasks = Array.from(document.querySelectorAll('.task-checkbox:checked')).map(cb => cb.value);
@@ -1175,7 +1184,7 @@ class ProjectScopeApp {
         const sprintNumber = this.data.sprints.filter(s => (s.projectId || s.project_id) === this.currentProject).length + 1;
         
         const sprint = {
-            id: this.generateId('S', this.data.sprints),
+            id: await this.generateId('S', this.data.sprints, this.currentProject),
             project_id: this.currentProject,
             name: `Sprint ${sprintNumber}`,
             start_date: startDate,
@@ -1190,12 +1199,12 @@ class ProjectScopeApp {
         this.loadBoardTab();
     }
 
-    addColumn() {
+    async addColumn() {
         const name = document.getElementById('column-name').value;
         const maxOrder = Math.max(...this.data.columns.map(c => c.order));
         
         const column = {
-            id: this.generateId('C', this.data.columns),
+            id: await this.generateId('C', this.data.columns),
             name,
             order: maxOrder + 1
         };
@@ -1255,13 +1264,13 @@ class ProjectScopeApp {
         return 'Riesgo Extremo';
     }
 
-    createMinutes() {
+    async createMinutes() {
         const title = document.getElementById('minutes-title').value;
         const date = document.getElementById('minutes-date').value;
         
         const minutes = {
-            id: this.generateId('M', this.data.meetingMinutes),
-            projectId: this.currentProject,
+            id: await this.generateId('M', this.data.meetingMinutes, this.currentProject),
+            project_id: this.currentProject,
             title,
             date,
             content: '',

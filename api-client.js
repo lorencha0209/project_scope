@@ -325,6 +325,14 @@ class ProjectScopeAPI {
         return this.request(`/columns?project_id=${projectId}`);
     }
 
+    // ==================== UTILITIES ====================
+
+    async generateId(prefix, projectId = null) {
+        const url = projectId ? `/generate-id/${prefix}?project_id=${projectId}` : `/generate-id/${prefix}`;
+        const response = await this.request(url);
+        return response.id;
+    }
+
     async getColumn(id) {
         return this.request(`/columns/${id}`);
     }
