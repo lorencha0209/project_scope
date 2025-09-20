@@ -957,41 +957,19 @@ function initializeExtensions() {
     },
     
     // Risk Management Tab Functions
-    async loadRisksTab() {
-        console.log('loadRisksTab() called');
-        // Reload risks from API to ensure we have the latest data
-        if (this.useAPI && window.api && this.currentProject) {
-            try {
-                await this.loadProjectDataFromAPI(this.currentProject);
-            } catch (error) {
-                console.error('Failed to reload risks from API:', error);
-            }
-        }
-        
-        console.log('Loading risks tab...');
-        console.log('Current project:', this.currentProject);
-        console.log('All risks:', this.data.risks);
-        
+    loadRisksTab() {
         const container = document.getElementById('project-tab-content');
-        
-        if (!container) {
-            console.error('project-tab-content container not found');
-            return;
-        }
-        
         const projectRisks = (this.data.risks || []).filter(risk => (risk.projectId || risk.project_id) === this.currentProject);
         
-        console.log('Filtered project risks:', projectRisks);
-        
         container.innerHTML = `
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-semibold title-color">Gestión de Riesgos</h3>
-                <button onclick="app.openCreateRiskModal()" class="btn-primary text-white px-4 py-2 rounded-lg hover:bg-opacity-90">
-                    <i class="fas fa-plus mr-2"></i>Registrar Riesgo
-                </button>
-            </div>
-            
-            <div class="grid gap-6">
+            <div class="space-y-6">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-semibold title-color">Gestión de Riesgos</h3>
+                    <button onclick="app.openCreateRiskModal()" class="btn-primary text-white px-4 py-2 rounded-lg hover:bg-opacity-90">
+                        <i class="fas fa-plus mr-2"></i>Registrar Nuevo Riesgo
+                    </button>
+                </div>
+                
                 ${projectRisks.length === 0 ? `
                     <div class="text-center py-12">
                         <i class="fas fa-exclamation-triangle text-6xl text-gray-400 mb-4"></i>
@@ -1001,52 +979,144 @@ function initializeExtensions() {
                             <i class="fas fa-plus mr-2"></i>Registrar Primer Riesgo
                         </button>
                     </div>
-                ` : projectRisks.map(risk => `
-                    <div class="bg-white rounded-lg shadow p-6">
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="flex-1">
-                                <h4 class="text-lg font-semibold title-color mb-2">${risk.name}</h4>
-                                <p class="text-gray-600 mb-3">${risk.description || 'Sin descripción'}</p>
-                            </div>
-                            <div class="flex space-x-2">
-                                <button onclick="app.editRisk('${risk.id}')" class="text-blue-600 hover:text-blue-900">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button onclick="app.deleteRisk('${risk.id}')" class="text-red-600 hover:text-red-900">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                            <div>
-                                <span class="text-sm text-gray-500">Impacto:</span>
-                                <div class="font-medium">${risk.impact}/3</div>
-                            </div>
-                            <div>
-                                <span class="text-sm text-gray-500">Probabilidad:</span>
-                                <div class="font-medium">${risk.probability}/3</div>
-                            </div>
-                            <div>
-                                <span class="text-sm text-gray-500">Estrategia:</span>
-                                <div class="font-medium">${risk.strategy || 'No definida'}</div>
-                            </div>
-                            <div>
-                                <span class="text-sm text-gray-500">Estado:</span>
-                                <div class="font-medium">${risk.status || 'Identificado'}</div>
-                            </div>
-                        </div>
-                        
-                        ${risk.mitigation_plan ? `
-                            <div class="mt-4">
-                                <span class="text-sm text-gray-500">Plan de Mitigación:</span>
-                                <p class="text-gray-700 mt-1">${risk.mitigation_plan}</p>
-                            </div>
-                        ` : ''}
+                ` : `
+                    <!-- Risks Table -->
+                    <div class="bg-white rounded-lg shadow overflow-hidden">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre del Riesgo</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Factor de Riesgo</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Apetito del Riesgo</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                ${projectRisks.map(risk => `
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${risk.id}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${risk.name}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${risk.impact * risk.probability}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 py-1 text-xs rounded-full ${this.getRiskAppetiteClass(risk.impact * risk.probability)}">${this.getRiskAppetiteText(risk.impact * risk.probability)}</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <div class="flex space-x-2">
+                                                <button onclick="app.editRisk('${risk.id}')" class="text-blue-600 hover:text-blue-900" title="Editar riesgo">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button onclick="app.deleteRisk('${risk.id}')" class="text-red-600 hover:text-red-900" title="Eliminar riesgo">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
                     </div>
-                `).join('')}
+                    
+                    <!-- Risk Matrix and Summary -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <h4 class="text-lg font-semibold title-color mb-4">Matriz de Riesgos</h4>
+                            <div class="risk-matrix">
+                                <div class="risk-matrix-header"></div>
+                                <div class="risk-matrix-header">1</div>
+                                <div class="risk-matrix-header">2</div>
+                                <div class="risk-matrix-header">3</div>
+                                <div class="risk-matrix-header">4</div>
+                                
+                                <div class="risk-matrix-label">4</div>
+                                <div class="risk-cell risk-extreme" data-impact="4" data-probability="1"></div>
+                                <div class="risk-cell risk-extreme" data-impact="4" data-probability="2"></div>
+                                <div class="risk-cell risk-extreme" data-impact="4" data-probability="3"></div>
+                                <div class="risk-cell risk-extreme" data-impact="4" data-probability="4"></div>
+                                
+                                <div class="risk-matrix-label">3</div>
+                                <div class="risk-cell risk-high" data-impact="3" data-probability="1"></div>
+                                <div class="risk-cell risk-high" data-impact="3" data-probability="2"></div>
+                                <div class="risk-cell risk-extreme" data-impact="3" data-probability="3"></div>
+                                <div class="risk-cell risk-extreme" data-impact="3" data-probability="4"></div>
+                                
+                                <div class="risk-matrix-label">2</div>
+                                <div class="risk-cell risk-moderate" data-impact="2" data-probability="1"></div>
+                                <div class="risk-cell risk-moderate" data-impact="2" data-probability="2"></div>
+                                <div class="risk-cell risk-high" data-impact="2" data-probability="3"></div>
+                                <div class="risk-cell risk-high" data-impact="2" data-probability="4"></div>
+                                
+                                <div class="risk-matrix-label">1</div>
+                                <div class="risk-cell risk-low" data-impact="1" data-probability="1"></div>
+                                <div class="risk-cell risk-low" data-impact="1" data-probability="2"></div>
+                                <div class="risk-cell risk-moderate" data-impact="1" data-probability="3"></div>
+                                <div class="risk-cell risk-moderate" data-impact="1" data-probability="4"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <h4 class="text-lg font-semibold title-color mb-4">Resumen de Riesgos</h4>
+                            <div class="space-y-4">
+                                <div>
+                                    <h5 class="font-medium text-gray-700 mb-2">Por Estado:</h5>
+                                    <div class="space-y-2">
+                                        <div class="flex justify-between">
+                                            <span class="text-sm text-gray-600">Activos:</span>
+                                            <span class="text-sm font-medium">${projectRisks.filter(r => r.status === 'Activo' || r.status === 'identified').length}</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-sm text-gray-600">Mitigados:</span>
+                                            <span class="text-sm font-medium">${projectRisks.filter(r => r.status === 'Mitigado' || r.status === 'monitoring').length}</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-sm text-gray-600">Cerrados:</span>
+                                            <span class="text-sm font-medium">${projectRisks.filter(r => r.status === 'Cerrado' || r.status === 'closed').length}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h5 class="font-medium text-gray-700 mb-2">Por Apetito:</h5>
+                                    <div class="space-y-2">
+                                        <div class="flex justify-between">
+                                            <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Bajo</span>
+                                            <span class="text-sm font-medium">${projectRisks.filter(r => (r.impact * r.probability) <= 4).length}</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Moderado</span>
+                                            <span class="text-sm font-medium">${projectRisks.filter(r => (r.impact * r.probability) > 4 && (r.impact * r.probability) <= 8).length}</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="px-2 py-1 text-xs rounded-full bg-orange-100 text-orange-800">Alto</span>
+                                            <span class="text-sm font-medium">${projectRisks.filter(r => (r.impact * r.probability) > 8 && (r.impact * r.probability) <= 12).length}</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">Extremo</span>
+                                            <span class="text-sm font-medium">${projectRisks.filter(r => (r.impact * r.probability) > 12).length}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `}
             </div>
         `;
+    },
+    
+    // Risk Management Helper Functions
+    getRiskAppetiteClass(factor) {
+        if (factor <= 4) return 'bg-green-100 text-green-800';
+        if (factor <= 8) return 'bg-yellow-100 text-yellow-800';
+        if (factor <= 12) return 'bg-orange-100 text-orange-800';
+        return 'bg-red-100 text-red-800';
+    },
+    
+    getRiskAppetiteText(factor) {
+        if (factor <= 4) return 'Bajo';
+        if (factor <= 8) return 'Moderado';
+        if (factor <= 12) return 'Alto';
+        return 'Extremo';
     },
     
     deleteMinutes(minutesId) {
