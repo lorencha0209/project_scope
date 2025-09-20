@@ -909,28 +909,45 @@ function initializeExtensions() {
         editor.parentNode.insertBefore(toolbar, editor);
     },
     
-    saveMinutesContent(minutesId) {
+    async saveMinutesContent(minutesId) {
         const minutes = this.data.meetingMinutes.find(m => m.id === minutesId);
-        if (minutes) {
-            const titleInput = document.getElementById('minutes-title-edit');
-            const dateInput = document.getElementById('minutes-date-edit');
-            const editor = document.getElementById(`minutes-editor-${minutesId}`);
+        if (!minutes) return;
+        
+        const titleInput = document.getElementById('minutes-title-edit');
+        const dateInput = document.getElementById('minutes-date-edit');
+        const editor = document.getElementById(`minutes-editor-${minutesId}`);
+        
+        if (titleInput) {
+            minutes.title = titleInput.value;
+        }
+        if (dateInput) {
+            minutes.date = dateInput.value;
+        }
+        if (editor) {
+            minutes.content = editor.innerHTML;
+        }
+        
+        try {
+            if (this.useAPI && window.api) {
+                // Guardar en el backend
+                await window.api.updateMinutes(minutesId, {
+                    title: minutes.title,
+                    meeting_date: minutes.date,
+                    content: minutes.content
+                });
+                console.log('Acta guardada en el backend');
+            } else {
+                // Guardar localmente
+                this.saveData();
+            }
             
-            if (titleInput) {
-                minutes.title = titleInput.value;
-            }
-            if (dateInput) {
-                minutes.date = dateInput.value;
-            }
-            if (editor) {
-                minutes.content = editor.innerHTML;
-            }
-            
-            this.saveData();
             alert('Acta guardada exitosamente');
             
             // Return to read mode
             this.loadMinutesContent(minutesId);
+        } catch (error) {
+            console.error('Error al guardar acta:', error);
+            alert('Error al guardar el acta: ' + error.message);
         }
     },
     
@@ -1186,7 +1203,7 @@ function initializeExtensions() {
         const risksInCell = risks.filter(risk => risk.impact === impact && risk.probability === probability);
         
         if (risksInCell.length === 0) {
-            return `<div class="text-xs text-gray-400">${impact * probability}</div>`;
+            return ''; // No mostrar nada si no hay riesgos
         }
         
         return risksInCell.map(risk => `
@@ -1262,33 +1279,36 @@ style.textContent = `
         riskMatrixStyle.textContent = `
             .risk-matrix {
                 display: grid;
-                grid-template-columns: 40px repeat(4, 60px);
-                grid-template-rows: 30px repeat(4, 60px);
-                gap: 2px;
+                grid-template-columns: 50px repeat(4, 80px);
+                grid-template-rows: 40px repeat(4, 80px);
+                gap: 1px;
                 margin: 20px auto;
-                max-width: 300px;
+                max-width: 400px;
+                border: 1px solid #d1d5db;
             }
             
             .risk-matrix-header {
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                font-size: 12px;
+                font-size: 14px;
                 font-weight: bold;
                 color: #374151;
                 background-color: #f9fafb;
                 border: 1px solid #d1d5db;
+                height: 40px;
             }
             
             .risk-matrix-label {
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                font-size: 12px;
+                font-size: 14px;
                 font-weight: bold;
                 color: #374151;
                 background-color: #f9fafb;
                 border: 1px solid #d1d5db;
+                height: 80px;
             }
             
             .risk-cell {
@@ -1298,7 +1318,8 @@ style.textContent = `
                 justify-content: center;
                 border: 1px solid #d1d5db;
                 position: relative;
-                min-height: 60px;
+                height: 80px;
+                width: 80px;
             }
             
             .risk-cell.risk-low {
@@ -1324,6 +1345,7 @@ style.textContent = `
             
             .risk-item div {
                 line-height: 1.2;
+                font-size: 11px;
             }
         `;
         

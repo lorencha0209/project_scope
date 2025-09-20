@@ -272,6 +272,13 @@ class ProjectScopeAPI {
         });
     }
 
+    async updateMinutes(id, minutes) {
+        return this.request(`/minutes/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(minutes)
+        });
+    }
+
     async updateRisk(id, risk) {
         return this.request(`/risks/${id}`, {
             method: 'PUT',
