@@ -17,7 +17,9 @@ class ProjectScopeApp {
     async generateId(prefix, items, projectId = null) {
         if (this.useAPI && window.api) {
             try {
-                return await window.api.generateId(prefix, projectId);
+                const url = projectId ? `/generate-id/${prefix}?project_id=${projectId}` : `/generate-id/${prefix}`;
+                const response = await window.api.request(url);
+                return response.id;
             } catch (error) {
                 console.warn('Failed to generate ID from API, falling back to local generation:', error);
             }
