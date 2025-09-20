@@ -980,43 +980,6 @@ function initializeExtensions() {
                         </button>
                     </div>
                 ` : `
-                    <!-- Risks Table -->
-                    <div class="bg-white rounded-lg shadow overflow-hidden">
-                        <table class="w-full">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre del Riesgo</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Factor de Riesgo</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Apetito del Riesgo</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                ${projectRisks.map(risk => `
-                                    <tr>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${risk.id}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${risk.name}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${risk.impact * risk.probability}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 py-1 text-xs rounded-full ${this.getRiskAppetiteClass(risk.impact * risk.probability)}">${this.getRiskAppetiteText(risk.impact * risk.probability)}</span>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <div class="flex space-x-2">
-                                                <button onclick="app.editRisk('${risk.id}')" class="text-blue-600 hover:text-blue-900" title="Editar riesgo">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
-                                                <button onclick="app.deleteRisk('${risk.id}')" class="text-red-600 hover:text-red-900" title="Eliminar riesgo">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                    
                     <!-- Risk Matrix and Summary -->
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <div class="bg-white rounded-lg shadow p-6">
@@ -1029,28 +992,60 @@ function initializeExtensions() {
                                 <div class="risk-matrix-header">4</div>
                                 
                                 <div class="risk-matrix-label">4</div>
-                                <div class="risk-cell risk-extreme" data-impact="4" data-probability="1"></div>
-                                <div class="risk-cell risk-extreme" data-impact="4" data-probability="2"></div>
-                                <div class="risk-cell risk-extreme" data-impact="4" data-probability="3"></div>
-                                <div class="risk-cell risk-extreme" data-impact="4" data-probability="4"></div>
+                                <div class="risk-cell risk-extreme" data-impact="4" data-probability="1">
+                                    ${this.getRisksInCell(projectRisks, 4, 1)}
+                                </div>
+                                <div class="risk-cell risk-extreme" data-impact="4" data-probability="2">
+                                    ${this.getRisksInCell(projectRisks, 4, 2)}
+                                </div>
+                                <div class="risk-cell risk-extreme" data-impact="4" data-probability="3">
+                                    ${this.getRisksInCell(projectRisks, 4, 3)}
+                                </div>
+                                <div class="risk-cell risk-extreme" data-impact="4" data-probability="4">
+                                    ${this.getRisksInCell(projectRisks, 4, 4)}
+                                </div>
                                 
                                 <div class="risk-matrix-label">3</div>
-                                <div class="risk-cell risk-high" data-impact="3" data-probability="1"></div>
-                                <div class="risk-cell risk-high" data-impact="3" data-probability="2"></div>
-                                <div class="risk-cell risk-extreme" data-impact="3" data-probability="3"></div>
-                                <div class="risk-cell risk-extreme" data-impact="3" data-probability="4"></div>
+                                <div class="risk-cell risk-high" data-impact="3" data-probability="1">
+                                    ${this.getRisksInCell(projectRisks, 3, 1)}
+                                </div>
+                                <div class="risk-cell risk-high" data-impact="3" data-probability="2">
+                                    ${this.getRisksInCell(projectRisks, 3, 2)}
+                                </div>
+                                <div class="risk-cell risk-extreme" data-impact="3" data-probability="3">
+                                    ${this.getRisksInCell(projectRisks, 3, 3)}
+                                </div>
+                                <div class="risk-cell risk-extreme" data-impact="3" data-probability="4">
+                                    ${this.getRisksInCell(projectRisks, 3, 4)}
+                                </div>
                                 
                                 <div class="risk-matrix-label">2</div>
-                                <div class="risk-cell risk-moderate" data-impact="2" data-probability="1"></div>
-                                <div class="risk-cell risk-moderate" data-impact="2" data-probability="2"></div>
-                                <div class="risk-cell risk-high" data-impact="2" data-probability="3"></div>
-                                <div class="risk-cell risk-high" data-impact="2" data-probability="4"></div>
+                                <div class="risk-cell risk-moderate" data-impact="2" data-probability="1">
+                                    ${this.getRisksInCell(projectRisks, 2, 1)}
+                                </div>
+                                <div class="risk-cell risk-moderate" data-impact="2" data-probability="2">
+                                    ${this.getRisksInCell(projectRisks, 2, 2)}
+                                </div>
+                                <div class="risk-cell risk-high" data-impact="2" data-probability="3">
+                                    ${this.getRisksInCell(projectRisks, 2, 3)}
+                                </div>
+                                <div class="risk-cell risk-high" data-impact="2" data-probability="4">
+                                    ${this.getRisksInCell(projectRisks, 2, 4)}
+                                </div>
                                 
                                 <div class="risk-matrix-label">1</div>
-                                <div class="risk-cell risk-low" data-impact="1" data-probability="1"></div>
-                                <div class="risk-cell risk-low" data-impact="1" data-probability="2"></div>
-                                <div class="risk-cell risk-moderate" data-impact="1" data-probability="3"></div>
-                                <div class="risk-cell risk-moderate" data-impact="1" data-probability="4"></div>
+                                <div class="risk-cell risk-low" data-impact="1" data-probability="1">
+                                    ${this.getRisksInCell(projectRisks, 1, 1)}
+                                </div>
+                                <div class="risk-cell risk-low" data-impact="1" data-probability="2">
+                                    ${this.getRisksInCell(projectRisks, 1, 2)}
+                                </div>
+                                <div class="risk-cell risk-moderate" data-impact="1" data-probability="3">
+                                    ${this.getRisksInCell(projectRisks, 1, 3)}
+                                </div>
+                                <div class="risk-cell risk-moderate" data-impact="1" data-probability="4">
+                                    ${this.getRisksInCell(projectRisks, 1, 4)}
+                                </div>
                             </div>
                         </div>
                         
@@ -1099,6 +1094,46 @@ function initializeExtensions() {
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Risks Table -->
+                    <div class="bg-white rounded-lg shadow overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <h4 class="text-lg font-semibold title-color">Lista Detallada de Riesgos</h4>
+                        </div>
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre del Riesgo</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Factor de Riesgo</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Apetito del Riesgo</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                ${projectRisks.map(risk => `
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${risk.id}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${risk.name}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${risk.impact * risk.probability}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 py-1 text-xs rounded-full ${this.getRiskAppetiteClass(risk.impact * risk.probability)}">${this.getRiskAppetiteText(risk.impact * risk.probability)}</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <div class="flex space-x-2">
+                                                <button onclick="app.editRisk('${risk.id}')" class="text-blue-600 hover:text-blue-900" title="Editar riesgo">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button onclick="app.deleteRisk('${risk.id}')" class="text-red-600 hover:text-red-900" title="Eliminar riesgo">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
                 `}
             </div>
         `;
@@ -1117,6 +1152,21 @@ function initializeExtensions() {
         if (factor <= 8) return 'Moderado';
         if (factor <= 12) return 'Alto';
         return 'Extremo';
+    },
+    
+    getRisksInCell(risks, impact, probability) {
+        const risksInCell = risks.filter(risk => risk.impact === impact && risk.probability === probability);
+        
+        if (risksInCell.length === 0) {
+            return `<div class="text-xs text-gray-400">${impact * probability}</div>`;
+        }
+        
+        return risksInCell.map(risk => `
+            <div class="risk-item" title="${risk.name}">
+                <div class="text-xs font-medium text-white">${risk.id}</div>
+                <div class="text-xs text-white opacity-80">${risk.name.length > 8 ? risk.name.substring(0, 8) + '...' : risk.name}</div>
+            </div>
+        `).join('');
     },
     
     deleteMinutes(minutesId) {
@@ -1180,8 +1230,79 @@ style.textContent = `
     }
 `;
 
-    // Add CSS styles to the page
-    document.head.appendChild(style);
+        // Add risk matrix CSS styles
+        const riskMatrixStyle = document.createElement('style');
+        riskMatrixStyle.textContent = `
+            .risk-matrix {
+                display: grid;
+                grid-template-columns: 40px repeat(4, 60px);
+                grid-template-rows: 30px repeat(4, 60px);
+                gap: 2px;
+                margin: 20px auto;
+                max-width: 300px;
+            }
+            
+            .risk-matrix-header {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+                font-weight: bold;
+                color: #374151;
+                background-color: #f9fafb;
+                border: 1px solid #d1d5db;
+            }
+            
+            .risk-matrix-label {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+                font-weight: bold;
+                color: #374151;
+                background-color: #f9fafb;
+                border: 1px solid #d1d5db;
+            }
+            
+            .risk-cell {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid #d1d5db;
+                position: relative;
+                min-height: 60px;
+            }
+            
+            .risk-cell.risk-low {
+                background-color: #dcfce7; /* green-100 */
+            }
+            
+            .risk-cell.risk-moderate {
+                background-color: #fef3c7; /* yellow-100 */
+            }
+            
+            .risk-cell.risk-high {
+                background-color: #fed7aa; /* orange-100 */
+            }
+            
+            .risk-cell.risk-extreme {
+                background-color: #fecaca; /* red-100 */
+            }
+            
+            .risk-item {
+                text-align: center;
+                padding: 2px;
+            }
+            
+            .risk-item div {
+                line-height: 1.2;
+            }
+        `;
+        
+        // Add CSS styles to the page
+        document.head.appendChild(style);
+        document.head.appendChild(riskMatrixStyle);
 
     console.log('Project Scope Extensions loaded successfully');
 }
