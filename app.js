@@ -1398,6 +1398,8 @@ class ProjectScopeApp {
                 status
             };
 
+            console.log('Creating risk with data:', risk);
+
             if (this.useAPI && window.api) {
                 await window.api.createRisk(risk);
                 console.log('✅ Risk created in database');
