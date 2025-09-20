@@ -784,44 +784,59 @@ function initializeExtensions() {
         const projectMinutes = this.data.meetingMinutes.filter(minutes => (minutes.projectId || minutes.project_id) === this.currentProject);
         
         container.innerHTML = `
-            <div class="mb-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-semibold title-color">Actas del Proyecto</h3>
+            <div class="space-y-6">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-semibold title-color">Actas de Reuniones</h3>
                     <button onclick="app.openCreateMinutesModal()" class="btn-primary text-white px-4 py-2 rounded-lg hover:bg-opacity-90">
-                        <i class="fas fa-plus mr-2"></i>Crear Acta
+                        <i class="fas fa-plus mr-2"></i>Crear Nueva Acta
                     </button>
                 </div>
                 
-                <div class="bg-white rounded-lg shadow overflow-hidden">
-                    <table class="w-full">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Título</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Creado</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            ${projectMinutes.length === 0 ? 
-                                '<tr><td colspan="5" class="text-center text-gray-500 py-4">No hay actas creadas</td></tr>' :
-                                projectMinutes.map(minutes => `
-                                    <tr>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${minutes.id}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${minutes.title}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${minutes.date || minutes.meeting_date}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${new Date(minutes.createdAt).toLocaleDateString()}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <button onclick="app.editMinutes('${minutes.id}')" class="text-indigo-600 hover:text-indigo-900 mr-3">Editar</button>
-                                            <button onclick="app.deleteMinutes('${minutes.id}')" class="text-red-600 hover:text-red-900">Eliminar</button>
-                                        </td>
-                                    </tr>
-                                `).join('')
-                            }
-                        </tbody>
-                    </table>
-                </div>
+                ${projectMinutes.length === 0 ? `
+                    <div class="text-center py-12">
+                        <i class="fas fa-file-alt text-6xl text-gray-400 mb-4"></i>
+                        <h3 class="text-xl font-semibold title-color mb-2">No hay Actas Registradas</h3>
+                        <p class="text-gray-600 mb-4">Comienza creando las actas de las reuniones del proyecto</p>
+                        <button onclick="app.openCreateMinutesModal()" class="btn-primary text-white px-6 py-3 rounded-lg hover:bg-opacity-90">
+                            <i class="fas fa-plus mr-2"></i>Crear Primera Acta
+                        </button>
+                    </div>
+                ` : `
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Lista de Actas -->
+                        <div class="bg-white rounded-lg shadow">
+                            <div class="px-6 py-4 border-b border-gray-200">
+                                <h4 class="text-lg font-semibold title-color">Lista de Actas</h4>
+                            </div>
+                            <div class="max-h-96 overflow-y-auto">
+                                ${projectMinutes.map(minutes => `
+                                    <div class="px-6 py-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onclick="app.loadMinutesContent('${minutes.id}')">
+                                        <div class="flex justify-between items-start">
+                                            <div class="flex-1">
+                                                <h5 class="font-medium text-gray-900 mb-1">${minutes.id}</h5>
+                                                <h6 class="text-sm font-medium text-gray-700 mb-1">${minutes.title}</h6>
+                                                <p class="text-xs text-gray-500">${minutes.date || minutes.meeting_date}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        
+                        <!-- Panel de Vista Previa -->
+                        <div class="bg-white rounded-lg shadow">
+                            <div class="px-6 py-4 border-b border-gray-200">
+                                <h4 class="text-lg font-semibold title-color">Vista Previa</h4>
+                            </div>
+                            <div id="minutes-preview-content" class="p-6">
+                                <div class="text-center text-gray-500">
+                                    <i class="fas fa-file-alt text-4xl mb-2"></i>
+                                    <p>Selecciona un acta para ver su contenido</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `}
             </div>
         `;
     },
@@ -830,25 +845,32 @@ function initializeExtensions() {
         const minutes = this.data.meetingMinutes.find(m => m.id === minutesId);
         if (!minutes) return;
         
-        const container = document.getElementById('project-tab-content');
-        container.innerHTML = `
-            <div class="flex justify-between items-start mb-6">
-                <div class="flex-1">
-                    <div id="minutes-title-display" class="text-xl font-semibold title-color mb-2">${minutes.title}</div>
-                    <div id="minutes-date-display" class="text-gray-600">${new Date(minutes.date).toLocaleDateString('es-ES')}</div>
+        const previewContainer = document.getElementById('minutes-preview-content');
+        if (!previewContainer) return;
+        
+        previewContainer.innerHTML = `
+            <div class="space-y-4">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h5 class="text-lg font-semibold text-gray-900">${minutes.title}</h5>
+                        <p class="text-sm text-gray-500">${minutes.date || minutes.meeting_date}</p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="app.editMinutes('${minutes.id}')" class="text-blue-600 hover:text-blue-900 text-sm">
+                            <i class="fas fa-edit"></i> Editar
+                        </button>
+                        <button onclick="app.deleteMinutes('${minutes.id}')" class="text-red-600 hover:text-red-900 text-sm">
+                            <i class="fas fa-trash"></i> Eliminar
+                        </button>
+                    </div>
                 </div>
-                <div class="flex space-x-2">
-                    <button onclick="app.editMinutes('${minutes.id}')" class="btn-edit text-gray-800 px-4 py-2 rounded-lg hover:bg-opacity-90">
-                        <i class="fas fa-edit mr-2"></i>Editar
-                    </button>
-                    <button onclick="app.deleteMinutes('${minutes.id}')" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-opacity-90">
-                        <i class="fas fa-trash mr-2"></i>Eliminar
-                    </button>
+                
+                <div class="border-t border-gray-200 pt-4">
+                    <h6 class="text-sm font-medium text-gray-700 mb-2">Contenido:</h6>
+                    <div class="prose max-w-none text-sm">
+                        ${minutes.content || '<p class="text-gray-500 italic">Sin contenido</p>'}
+                    </div>
                 </div>
-            </div>
-            
-            <div id="minutes-content-display" class="prose max-w-none">
-                ${minutes.content || '<p class="text-gray-500 italic">No hay contenido disponible</p>'}
             </div>
         `;
     },
@@ -920,30 +942,36 @@ function initializeExtensions() {
         }
         
         console.log(`Editing minutes ${minutesId}`);
-        const container = document.getElementById('project-tab-content');
+        const previewContainer = document.getElementById('minutes-preview-content');
         
-        if (!container) {
-            console.error('project-tab-content container not found');
+        if (!previewContainer) {
+            console.error('minutes-preview-content container not found');
             return;
         }
-        container.innerHTML = `
-            <div class="flex justify-between items-start mb-6">
-                <div class="flex-1">
-                    <input type="text" id="minutes-title-edit" value="${minutes.title}" class="text-xl font-semibold title-color mb-2 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <input type="date" id="minutes-date-edit" value="${minutes.date}" class="text-gray-600 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        
+        previewContainer.innerHTML = `
+            <div class="space-y-4">
+                <div class="flex justify-between items-start">
+                    <div class="flex-1">
+                        <input type="text" id="minutes-title-edit" value="${minutes.title}" class="text-lg font-semibold w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2">
+                        <input type="date" id="minutes-date-edit" value="${minutes.date || minutes.meeting_date}" class="text-sm text-gray-500 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="app.saveMinutesContent('${minutes.id}')" class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
+                            <i class="fas fa-save"></i> Guardar
+                        </button>
+                        <button onclick="app.cancelEditMinutes('${minutes.id}')" class="bg-gray-500 text-white px-3 py-1 rounded text-sm hover:bg-gray-600">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                    </div>
                 </div>
-                <div class="flex space-x-2">
-                    <button onclick="app.saveMinutesContent('${minutes.id}')" class="btn-save text-white px-4 py-2 rounded-lg hover:bg-opacity-90">
-                        <i class="fas fa-save mr-2"></i>Guardar
-                    </button>
-                    <button onclick="app.cancelEditMinutes('${minutes.id}')" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-opacity-90">
-                        <i class="fas fa-times mr-2"></i>Cancelar
-                    </button>
+                
+                <div class="border-t border-gray-200 pt-4">
+                    <h6 class="text-sm font-medium text-gray-700 mb-2">Contenido:</h6>
+                    <div class="rich-text-editor border border-gray-300 rounded-lg p-3 min-h-32" id="minutes-editor-${minutes.id}" contenteditable="true">
+                        ${minutes.content || '<p>Escribe el contenido del acta aquí...</p>'}
+                    </div>
                 </div>
-            </div>
-            
-            <div class="rich-text-editor" id="minutes-editor-${minutes.id}" contenteditable="true">
-                ${minutes.content || '<p>Escribe el contenido del acta aquí...</p>'}
             </div>
         `;
         
