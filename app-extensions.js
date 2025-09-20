@@ -110,7 +110,7 @@ function initializeExtensions() {
         }
         return this.data.sprints
             .filter(sprint => (sprint.projectId || sprint.project_id) === this.currentProject)
-            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+            .sort((a, b) => new Date(b.createdAt || b.created_at) - new Date(a.createdAt || a.created_at))[0];
     },
     
     calculateSprintProgress(sprint) {
@@ -128,6 +128,9 @@ function initializeExtensions() {
     },
     
     getTasksForColumn(columnId, sprintTaskIds) {
+        if (!this.data.tasks || !Array.isArray(this.data.tasks)) {
+            return [];
+        }
         const columnTasks = this.data.tasks.filter(task => 
             sprintTaskIds.includes(task.id) && task.status === this.getColumnStatus(columnId)
         );
@@ -172,6 +175,9 @@ function initializeExtensions() {
     },
     
     moveTask(taskId, columnId) {
+        if (!this.data.tasks || !Array.isArray(this.data.tasks)) {
+            return;
+        }
         const task = this.data.tasks.find(t => t.id === taskId);
         if (task) {
             task.status = this.getColumnStatus(columnId);
@@ -312,6 +318,9 @@ function initializeExtensions() {
     },
     
     calculateSprintMetrics(sprint) {
+        if (!this.data.tasks || !Array.isArray(this.data.tasks) || !sprint.taskIds) {
+            return { total: 0, completed: 0, inProgress: 0, blocked: 0 };
+        }
         const sprintTasks = this.data.tasks.filter(task => sprint.taskIds.includes(task.id));
         
         return {
