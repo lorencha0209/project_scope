@@ -105,14 +105,17 @@ function initializeExtensions() {
     },
     
     getCurrentSprint() {
+        if (!this.data.sprints || !Array.isArray(this.data.sprints)) {
+            return null;
+        }
         return this.data.sprints
-            .filter(sprint => sprint.projectId === this.currentProject)
+            .filter(sprint => (sprint.projectId || sprint.project_id) === this.currentProject)
             .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
     },
     
     calculateSprintProgress(sprint) {
-        const startDate = new Date(sprint.startDate);
-        const endDate = new Date(sprint.endDate);
+        const startDate = new Date(sprint.start_date || sprint.startDate);
+        const endDate = new Date(sprint.end_date || sprint.endDate);
         const currentDate = new Date();
         
         const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
