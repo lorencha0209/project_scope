@@ -830,7 +830,7 @@ function initializeExtensions() {
         const minutes = this.data.meetingMinutes.find(m => m.id === minutesId);
         if (!minutes) return;
         
-        const container = document.getElementById('minutes-content');
+        const container = document.getElementById('project-tab-content');
         container.innerHTML = `
             <div class="flex justify-between items-start mb-6">
                 <div class="flex-1">
@@ -855,6 +855,13 @@ function initializeExtensions() {
     
     initializeRichTextEditor(editorId) {
         const editor = document.getElementById(editorId);
+        
+        if (!editor) {
+            console.error(`Editor with ID ${editorId} not found`);
+            return;
+        }
+        
+        console.log(`Initializing rich text editor for ${editorId}`);
         
         // Add formatting buttons
         const toolbar = document.createElement('div');
@@ -907,9 +914,18 @@ function initializeExtensions() {
     
     editMinutes(minutesId) {
         const minutes = this.data.meetingMinutes.find(m => m.id === minutesId);
-        if (!minutes) return;
+        if (!minutes) {
+            console.error(`Minutes with ID ${minutesId} not found`);
+            return;
+        }
         
-        const container = document.getElementById('minutes-content');
+        console.log(`Editing minutes ${minutesId}`);
+        const container = document.getElementById('project-tab-content');
+        
+        if (!container) {
+            console.error('project-tab-content container not found');
+            return;
+        }
         container.innerHTML = `
             <div class="flex justify-between items-start mb-6">
                 <div class="flex-1">
