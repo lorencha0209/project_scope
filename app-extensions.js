@@ -52,11 +52,11 @@ function initializeExtensions() {
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                         <div>
                             <span class="text-gray-600">Fecha Inicio:</span>
-                            <span class="font-medium">${currentSprint.startDate}</span>
+                            <span class="font-medium">${currentSprint.startDate || currentSprint.start_date}</span>
                         </div>
                         <div>
                             <span class="text-gray-600">Fecha Fin:</span>
-                            <span class="font-medium">${currentSprint.endDate}</span>
+                            <span class="font-medium">${currentSprint.endDate || currentSprint.end_date}</span>
                         </div>
                         <div>
                             <span class="text-gray-600">Progreso:</span>
