@@ -1460,8 +1460,20 @@ class ProjectScopeApp {
             }
         }
         
+        console.log('Loading risks tab...');
+        console.log('Current project:', this.currentProject);
+        console.log('All risks:', this.data.risks);
+        
         const container = document.getElementById('project-tab-content');
+        
+        if (!container) {
+            console.error('project-tab-content container not found');
+            return;
+        }
+        
         const projectRisks = (this.data.risks || []).filter(risk => (risk.projectId || risk.project_id) === this.currentProject);
+        
+        console.log('Filtered project risks:', projectRisks);
         
         container.innerHTML = `
             <div class="flex justify-between items-center mb-6">
