@@ -83,7 +83,7 @@ function initializeExtensions() {
                             ` : ''}
                                 </div>
                                 <div class="p-4 kanban-column" data-column-id="${column.id}">
-                                    ${this.getTasksForColumn(column.id, currentSprint.taskIds).map(task => `
+                                    ${this.getTasksForColumn(column.id, currentSprint.taskIds || []).map(task => `
                                         <div class="task-card bg-white border border-gray-200 rounded-lg p-3 mb-3 shadow-sm cursor-pointer hover:shadow-md transition-shadow" data-task-id="${task.id}" onclick="app.showTaskDetails('${task.id}')">
                                             <h5 class="font-medium text-sm mb-2">${task.title}</h5>
                                             <p class="text-xs text-gray-600 mb-2">${task.description || 'Sin descripción'}</p>
@@ -131,8 +131,19 @@ function initializeExtensions() {
         if (!this.data.tasks || !Array.isArray(this.data.tasks)) {
             return [];
         }
+        
+        // Map column IDs to both Spanish and English status values
+        const statusMap = {
+            'todo': ['Por Hacer', 'todo'],
+            'progress': ['En Progreso', 'in_progress'],
+            'blocked': ['Impedimento', 'blocked'],
+            'done': ['Terminado', 'done']
+        };
+        
+        const allowedStatuses = statusMap[columnId] || [this.data.columns.find(c => c.id === columnId)?.name || 'Por Hacer'];
+        
         const columnTasks = this.data.tasks.filter(task => 
-            sprintTaskIds.includes(task.id) && task.status === this.getColumnStatus(columnId)
+            sprintTaskIds.includes(task.id) && allowedStatuses.includes(task.status)
         );
         return columnTasks;
     },
@@ -180,7 +191,14 @@ function initializeExtensions() {
         }
         const task = this.data.tasks.find(t => t.id === taskId);
         if (task) {
-            task.status = this.getColumnStatus(columnId);
+            // Map column ID to English status for backend compatibility
+            const statusMap = {
+                'todo': 'todo',
+                'progress': 'in_progress',
+                'blocked': 'blocked',
+                'done': 'done'
+            };
+            task.status = statusMap[columnId] || this.getColumnStatus(columnId);
             this.saveData();
         }
     },
@@ -325,10 +343,10 @@ function initializeExtensions() {
         
         return {
             total: sprintTasks.length,
-            completed: sprintTasks.filter(task => task.status === 'Terminado').length,
-            pending: sprintTasks.filter(task => task.status === 'Por Hacer').length,
-            inProgress: sprintTasks.filter(task => task.status === 'En Progreso').length,
-            blocked: sprintTasks.filter(task => task.status === 'Impedimento').length
+            completed: sprintTasks.filter(task => task.status === 'done' || task.status === 'Terminado').length,
+            pending: sprintTasks.filter(task => task.status === 'todo' || task.status === 'Por Hacer').length,
+            inProgress: sprintTasks.filter(task => task.status === 'in_progress' || task.status === 'En Progreso').length,
+            blocked: sprintTasks.filter(task => task.status === 'blocked' || task.status === 'Impedimento').length
         };
     },
     
