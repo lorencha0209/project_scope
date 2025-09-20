@@ -499,6 +499,7 @@ class ProjectScopeApp {
                 this.loadScheduleTab();
                 break;
             case 'risks':
+                console.log('About to call loadRisksTab()');
                 this.loadRisksTab();
                 break;
             case 'minutes':
@@ -1453,6 +1454,7 @@ class ProjectScopeApp {
     }
 
     async loadRisksTab() {
+        console.log('loadRisksTab() called');
         // Reload risks from API to ensure we have the latest data
         if (this.useAPI && window.api && this.currentProject) {
             try {
