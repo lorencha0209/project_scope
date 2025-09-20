@@ -24,6 +24,10 @@ function initializeExtensions() {
         const container = document.getElementById('project-tab-content');
         const currentSprint = this.getCurrentSprint();
         
+        console.log('Loading board tab...');
+        console.log('Current sprint:', currentSprint);
+        console.log('Available columns:', this.data.columns);
+        
         if (!currentSprint) {
             container.innerHTML = `
                 <div class="text-center py-12">
@@ -71,7 +75,7 @@ function initializeExtensions() {
                 </div>
                 
                 <div class="flex space-x-4 overflow-x-auto" id="kanban-board">
-                    ${this.data.columns.sort((a, b) => a.order - b.order).map(column => `
+                    ${this.data.columns.sort((a, b) => (a.order_index || a.order || 0) - (b.order_index || b.order || 0)).map(column => `
                         <div class="flex-shrink-0 w-80 kanban-column-container" data-column-id="${column.id}">
                             <div class="bg-white rounded-lg shadow">
                                 <div class="p-4 border-b flex justify-between items-center">
@@ -129,8 +133,13 @@ function initializeExtensions() {
     
     getTasksForColumn(columnId, sprintTaskIds) {
         if (!this.data.tasks || !Array.isArray(this.data.tasks)) {
+            console.log('No tasks data available');
             return [];
         }
+        
+        console.log(`Getting tasks for column: ${columnId}`);
+        console.log('Sprint task IDs:', sprintTaskIds);
+        console.log('Available tasks:', this.data.tasks.map(t => ({ id: t.id, status: t.status })));
         
         // Map column IDs to both Spanish and English status values
         const statusMap = {
@@ -141,10 +150,13 @@ function initializeExtensions() {
         };
         
         const allowedStatuses = statusMap[columnId] || [this.data.columns.find(c => c.id === columnId)?.name || 'Por Hacer'];
+        console.log(`Allowed statuses for column ${columnId}:`, allowedStatuses);
         
         const columnTasks = this.data.tasks.filter(task => 
             sprintTaskIds.includes(task.id) && allowedStatuses.includes(task.status)
         );
+        
+        console.log(`Found ${columnTasks.length} tasks for column ${columnId}:`, columnTasks);
         return columnTasks;
     },
     
