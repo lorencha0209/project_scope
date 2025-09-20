@@ -24,10 +24,6 @@ function initializeExtensions() {
         const container = document.getElementById('project-tab-content');
         const currentSprint = this.getCurrentSprint();
         
-        console.log('Loading board tab...');
-        console.log('Current sprint:', currentSprint);
-        console.log('Available columns:', this.data.columns);
-        
         if (!currentSprint) {
             container.innerHTML = `
                 <div class="text-center py-12">
@@ -133,13 +129,8 @@ function initializeExtensions() {
     
     getTasksForColumn(columnId, sprintTaskIds) {
         if (!this.data.tasks || !Array.isArray(this.data.tasks)) {
-            console.log('No tasks data available');
             return [];
         }
-        
-        console.log(`Getting tasks for column: ${columnId}`);
-        console.log('Sprint task IDs:', sprintTaskIds);
-        console.log('Available tasks:', this.data.tasks.map(t => ({ id: t.id, status: t.status })));
         
         // Map column IDs to both Spanish and English status values
         const statusMap = {
@@ -150,13 +141,11 @@ function initializeExtensions() {
         };
         
         const allowedStatuses = statusMap[columnId] || [this.data.columns.find(c => c.id === columnId)?.name || 'Por Hacer'];
-        console.log(`Allowed statuses for column ${columnId}:`, allowedStatuses);
         
         const columnTasks = this.data.tasks.filter(task => 
             sprintTaskIds.includes(task.id) && allowedStatuses.includes(task.status)
         );
         
-        console.log(`Found ${columnTasks.length} tasks for column ${columnId}:`, columnTasks);
         return columnTasks;
     },
     
@@ -197,7 +186,7 @@ function initializeExtensions() {
         });
     },
     
-    moveTask(taskId, columnId) {
+    async moveTask(taskId, columnId) {
         if (!this.data.tasks || !Array.isArray(this.data.tasks)) {
             return;
         }
@@ -210,8 +199,25 @@ function initializeExtensions() {
                 'blocked': 'blocked',
                 'done': 'done'
             };
-            task.status = statusMap[columnId] || this.getColumnStatus(columnId);
+            const newStatus = statusMap[columnId] || this.getColumnStatus(columnId);
+            task.status = newStatus;
+            
+            // Update in database if using API
+            if (this.useAPI && window.api) {
+                try {
+                    await window.api.updateTask(taskId, { status: newStatus });
+                    console.log(`Task ${taskId} status updated to ${newStatus} in database`);
+                } catch (error) {
+                    console.error('Failed to update task status in database:', error);
+                    // Revert the change if API call failed
+                    task.status = task.status; // Keep original status
+                    this.showNotification('Error al actualizar el estado de la tarea', 'error');
+                    return;
+                }
+            }
+            
             this.saveData();
+            console.log(`Task ${taskId} moved to column ${columnId} with status ${newStatus}`);
         }
     },
     
