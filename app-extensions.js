@@ -1164,7 +1164,6 @@ function initializeExtensions() {
         return risksInCell.map(risk => `
             <div class="risk-item" title="${risk.name}">
                 <div class="text-xs font-medium text-white">${risk.id}</div>
-                <div class="text-xs text-white opacity-80">${risk.name.length > 8 ? risk.name.substring(0, 8) + '...' : risk.name}</div>
             </div>
         `).join('');
     },
@@ -1275,19 +1274,19 @@ style.textContent = `
             }
             
             .risk-cell.risk-low {
-                background-color: #dcfce7; /* green-100 */
+                background-color: #10b981; /* green-500 */
             }
             
             .risk-cell.risk-moderate {
-                background-color: #fef3c7; /* yellow-100 */
+                background-color: #f59e0b; /* yellow-500 */
             }
             
             .risk-cell.risk-high {
-                background-color: #fed7aa; /* orange-100 */
+                background-color: #f97316; /* orange-500 */
             }
             
             .risk-cell.risk-extreme {
-                background-color: #fecaca; /* red-100 */
+                background-color: #ef4444; /* red-500 */
             }
             
             .risk-item {
