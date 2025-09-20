@@ -1403,6 +1403,8 @@ class ProjectScopeApp {
             if (this.useAPI && window.api) {
                 await window.api.createRisk(risk);
                 console.log('✅ Risk created in database');
+                // Add the risk to local data after successful API call
+                (this.data.risks || []).push(risk);
             } else {
                 (this.data.risks || []).push(risk);
             }
@@ -1415,6 +1417,17 @@ class ProjectScopeApp {
             alert('Riesgo creado exitosamente');
         } catch (error) {
             console.error('Error creating risk:', error);
+            
+            // If risk already exists, reload the risks from API and show success
+            if (error.message.includes('already exists') || error.message.includes('duplicate')) {
+                console.log('Risk already exists, reloading from API...');
+                await this.loadProjectDataFromAPI(this.currentProject);
+                this.closeCreateRiskModal();
+                this.loadRisksTab();
+                alert('Riesgo creado exitosamente');
+                return;
+            }
+            
             alert('Error al crear el riesgo: ' + error.message);
         }
     }
@@ -1435,7 +1448,16 @@ class ProjectScopeApp {
         }
     }
 
-    loadRisksTab() {
+    async loadRisksTab() {
+        // Reload risks from API to ensure we have the latest data
+        if (this.useAPI && window.api && this.currentProject) {
+            try {
+                await this.loadProjectDataFromAPI(this.currentProject);
+            } catch (error) {
+                console.error('Failed to reload risks from API:', error);
+            }
+        }
+        
         const container = document.getElementById('project-tab-content');
         const projectRisks = (this.data.risks || []).filter(risk => (risk.projectId || risk.project_id) === this.currentProject);
         
