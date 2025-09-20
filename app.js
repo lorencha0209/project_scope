@@ -346,6 +346,7 @@ class ProjectScopeApp {
     }
 
     showProjectTab(tabName) {
+        console.log(`Switching to tab: ${tabName}`);
         this.currentTab = tabName;
         
         // Clean up existing charts when switching tabs
@@ -481,6 +482,7 @@ class ProjectScopeApp {
 
     // Project Management
     loadProjectTabContent(tabName) {
+        console.log(`Loading tab content for: ${tabName}`);
         const container = document.getElementById('project-tab-content');
         
         switch (tabName) {
