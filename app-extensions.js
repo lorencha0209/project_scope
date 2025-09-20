@@ -956,6 +956,99 @@ function initializeExtensions() {
         this.loadMinutesContent(minutesId);
     },
     
+    // Risk Management Tab Functions
+    async loadRisksTab() {
+        console.log('loadRisksTab() called');
+        // Reload risks from API to ensure we have the latest data
+        if (this.useAPI && window.api && this.currentProject) {
+            try {
+                await this.loadProjectDataFromAPI(this.currentProject);
+            } catch (error) {
+                console.error('Failed to reload risks from API:', error);
+            }
+        }
+        
+        console.log('Loading risks tab...');
+        console.log('Current project:', this.currentProject);
+        console.log('All risks:', this.data.risks);
+        
+        const container = document.getElementById('project-tab-content');
+        
+        if (!container) {
+            console.error('project-tab-content container not found');
+            return;
+        }
+        
+        const projectRisks = (this.data.risks || []).filter(risk => (risk.projectId || risk.project_id) === this.currentProject);
+        
+        console.log('Filtered project risks:', projectRisks);
+        
+        container.innerHTML = `
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-semibold title-color">Gestión de Riesgos</h3>
+                <button onclick="app.openCreateRiskModal()" class="btn-primary text-white px-4 py-2 rounded-lg hover:bg-opacity-90">
+                    <i class="fas fa-plus mr-2"></i>Registrar Riesgo
+                </button>
+            </div>
+            
+            <div class="grid gap-6">
+                ${projectRisks.length === 0 ? `
+                    <div class="text-center py-12">
+                        <i class="fas fa-exclamation-triangle text-6xl text-gray-400 mb-4"></i>
+                        <h3 class="text-xl font-semibold title-color mb-2">No hay Riesgos Registrados</h3>
+                        <p class="text-gray-600 mb-4">Comienza registrando los riesgos identificados para este proyecto</p>
+                        <button onclick="app.openCreateRiskModal()" class="btn-primary text-white px-6 py-3 rounded-lg hover:bg-opacity-90">
+                            <i class="fas fa-plus mr-2"></i>Registrar Primer Riesgo
+                        </button>
+                    </div>
+                ` : projectRisks.map(risk => `
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex-1">
+                                <h4 class="text-lg font-semibold title-color mb-2">${risk.name}</h4>
+                                <p class="text-gray-600 mb-3">${risk.description || 'Sin descripción'}</p>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button onclick="app.editRisk('${risk.id}')" class="text-blue-600 hover:text-blue-900">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="app.deleteRisk('${risk.id}')" class="text-red-600 hover:text-red-900">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                            <div>
+                                <span class="text-sm text-gray-500">Impacto:</span>
+                                <div class="font-medium">${risk.impact}/3</div>
+                            </div>
+                            <div>
+                                <span class="text-sm text-gray-500">Probabilidad:</span>
+                                <div class="font-medium">${risk.probability}/3</div>
+                            </div>
+                            <div>
+                                <span class="text-sm text-gray-500">Estrategia:</span>
+                                <div class="font-medium">${risk.strategy || 'No definida'}</div>
+                            </div>
+                            <div>
+                                <span class="text-sm text-gray-500">Estado:</span>
+                                <div class="font-medium">${risk.status || 'Identificado'}</div>
+                            </div>
+                        </div>
+                        
+                        ${risk.mitigation_plan ? `
+                            <div class="mt-4">
+                                <span class="text-sm text-gray-500">Plan de Mitigación:</span>
+                                <p class="text-gray-700 mt-1">${risk.mitigation_plan}</p>
+                            </div>
+                        ` : ''}
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    },
+    
     deleteMinutes(minutesId) {
         if (confirm('¿Estás seguro de que quieres eliminar esta acta?')) {
             this.data.meetingMinutes = this.data.meetingMinutes.filter(m => m.id !== minutesId);
