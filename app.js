@@ -1369,6 +1369,139 @@ class ProjectScopeApp {
             container.appendChild(projectCard);
         });
     }
+
+    // Risk Management Methods
+    async createRisk() {
+        const name = document.getElementById('risk-name').value;
+        const description = document.getElementById('risk-description').value;
+        const impact = parseInt(document.getElementById('risk-impact').value);
+        const probability = parseInt(document.getElementById('risk-probability').value);
+        const mitigation_plan = document.getElementById('risk-mitigation').value;
+        const strategy = document.getElementById('risk-strategy').value;
+        const status = document.getElementById('risk-status').value;
+
+        if (!name) {
+            alert('El nombre del riesgo es obligatorio');
+            return;
+        }
+
+        try {
+            const risk = {
+                id: await this.generateId('R', this.data.risks || [], this.currentProject),
+                project_id: this.currentProject,
+                name,
+                description,
+                impact,
+                probability,
+                mitigation_plan,
+                strategy,
+                status
+            };
+
+            if (this.useAPI && window.api) {
+                await window.api.createRisk(risk);
+                console.log('✅ Risk created in database');
+            } else {
+                (this.data.risks || []).push(risk);
+            }
+
+            this.saveData();
+            this.closeCreateRiskModal();
+            this.loadRisksTab();
+            
+            // Show success message
+            alert('Riesgo creado exitosamente');
+        } catch (error) {
+            console.error('Error creating risk:', error);
+            alert('Error al crear el riesgo: ' + error.message);
+        }
+    }
+
+    openCreateRiskModal() {
+        const modal = document.getElementById('create-risk-modal');
+        if (modal) {
+            modal.classList.remove('hidden');
+        }
+    }
+
+    closeCreateRiskModal() {
+        const modal = document.getElementById('create-risk-modal');
+        if (modal) {
+            modal.classList.add('hidden');
+            // Reset form
+            document.getElementById('create-risk-form').reset();
+        }
+    }
+
+    loadRisksTab() {
+        const container = document.getElementById('project-tab-content');
+        const projectRisks = (this.data.risks || []).filter(risk => (risk.projectId || risk.project_id) === this.currentProject);
+        
+        container.innerHTML = `
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-semibold title-color">Gestión de Riesgos</h3>
+                <button onclick="app.openCreateRiskModal()" class="btn-primary text-white px-4 py-2 rounded-lg hover:bg-opacity-90">
+                    <i class="fas fa-plus mr-2"></i>Registrar Riesgo
+                </button>
+            </div>
+            
+            <div class="grid gap-6">
+                ${projectRisks.length === 0 ? `
+                    <div class="text-center py-12">
+                        <i class="fas fa-exclamation-triangle text-6xl text-gray-400 mb-4"></i>
+                        <h3 class="text-xl font-semibold title-color mb-2">No hay Riesgos Registrados</h3>
+                        <p class="text-gray-600 mb-4">Comienza registrando los riesgos identificados para este proyecto</p>
+                        <button onclick="app.openCreateRiskModal()" class="btn-primary text-white px-6 py-3 rounded-lg hover:bg-opacity-90">
+                            <i class="fas fa-plus mr-2"></i>Registrar Primer Riesgo
+                        </button>
+                    </div>
+                ` : projectRisks.map(risk => `
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex-1">
+                                <h4 class="text-lg font-semibold title-color mb-2">${risk.name}</h4>
+                                <p class="text-gray-600 mb-3">${risk.description || 'Sin descripción'}</p>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button onclick="app.editRisk('${risk.id}')" class="text-blue-600 hover:text-blue-900">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="app.deleteRisk('${risk.id}')" class="text-red-600 hover:text-red-900">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                            <div>
+                                <span class="text-sm text-gray-500">Impacto:</span>
+                                <div class="font-medium">${risk.impact}/3</div>
+                            </div>
+                            <div>
+                                <span class="text-sm text-gray-500">Probabilidad:</span>
+                                <div class="font-medium">${risk.probability}/3</div>
+                            </div>
+                            <div>
+                                <span class="text-sm text-gray-500">Estrategia:</span>
+                                <div class="font-medium">${risk.strategy || 'No definida'}</div>
+                            </div>
+                            <div>
+                                <span class="text-sm text-gray-500">Estado:</span>
+                                <div class="font-medium">${risk.status || 'Identificado'}</div>
+                            </div>
+                        </div>
+                        
+                        ${risk.mitigation_plan ? `
+                            <div class="mt-4">
+                                <span class="text-sm text-gray-500">Plan de Mitigación:</span>
+                                <p class="text-gray-700 mt-1">${risk.mitigation_plan}</p>
+                            </div>
+                        ` : ''}
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
 }
 
 // Make ProjectScopeApp globally available
